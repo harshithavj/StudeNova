@@ -72,8 +72,3 @@ The API runs on `http://localhost:5000/api`.
 4. Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_STORAGE_BUCKET`.
 5. Set `VITE_API_BASE_URL=http://localhost:5000/api` in `frontend/.env`.
 
-
-
-- Use Render or Railway for Flask and Vercel or Netlify for React.
-- Keep `SUPABASE_SERVICE_ROLE_KEY` only on the backend.
-- Configure a transactional email provider for sending scheduled notification records.
