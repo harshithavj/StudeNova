@@ -38,14 +38,22 @@ create table if not exists events (
   slug varchar(220) unique not null,
   description text not null,
   category varchar(80) not null,
+  domain varchar(120),
   mode varchar(20) not null check (mode in ('online', 'offline', 'hybrid')),
   location varchar(180) not null,
   college_name varchar(180),
   company_name varchar(180),
+  conducting_organization varchar(180),
   event_banner text,
   event_date timestamptz,
   college varchar(180),
   eligibility text,
+  team_size varchar(40),
+  prize_pool numeric(12, 2) not null default 0,
+  rules text,
+  schedule jsonb not null default '[]'::jsonb,
+  contact_email varchar(255),
+  faqs jsonb not null default '[]'::jsonb,
   seats_available integer not null default 0,
   registration_link text,
   poster_url text,
@@ -76,10 +84,92 @@ create table if not exists registrations (
   user_id bigint not null references users(id) on delete cascade,
   event_id bigint not null references events(id) on delete cascade,
   status varchar(30) not null default 'registered',
+  external_platform varchar(120),
+  external_registration_url text,
+  marked_completed_at timestamptz,
   qr_token varchar(120) unique not null,
   checked_in_at timestamptz,
   created_at timestamptz not null default now(),
   unique (user_id, event_id)
+);
+
+create table if not exists student_profiles (
+  id bigserial primary key,
+  user_id bigint not null unique references users(id) on delete cascade,
+  department varchar(160),
+  academic_year varchar(60),
+  skills jsonb not null default '[]'::jsonb,
+  interests jsonb not null default '[]'::jsonb,
+  domains jsonb not null default '[]'::jsonb,
+  resume_url text,
+  portfolio_url text,
+  github_url text,
+  linkedin_url text,
+  participation_streak integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists student_event_reminders (
+  id bigserial primary key,
+  user_id bigint not null references users(id) on delete cascade,
+  event_id bigint not null references events(id) on delete cascade,
+  reminder_type varchar(80) not null check (reminder_type in ('deadline_7d', 'deadline_3d', 'deadline_24h', 'deadline_1h', 'event_start', 'submission_deadline', 'waiting_list_conversion')),
+  channel varchar(40) not null default 'in_app' check (channel in ('in_app', 'email', 'push')),
+  scheduled_for timestamptz not null,
+  sent_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists student_achievements (
+  id bigserial primary key,
+  user_id bigint not null references users(id) on delete cascade,
+  event_id bigint references events(id) on delete set null,
+  title varchar(180) not null,
+  achievement_type varchar(80) not null default 'participation',
+  position varchar(80),
+  cash_prize_amount numeric(12, 2),
+  certificate_url text,
+  proof_url text,
+  image_url text,
+  is_public boolean not null default true,
+  awarded_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists student_connections (
+  id bigserial primary key,
+  requester_id bigint not null references users(id) on delete cascade,
+  receiver_id bigint not null references users(id) on delete cascade,
+  status varchar(30) not null default 'pending' check (status in ('pending', 'accepted', 'blocked')),
+  created_at timestamptz not null default now(),
+  unique (requester_id, receiver_id),
+  check (requester_id <> receiver_id)
+);
+
+create table if not exists student_communities (
+  id bigserial primary key,
+  name varchar(160) unique not null,
+  domain varchar(120) not null,
+  description text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists student_community_members (
+  community_id bigint not null references student_communities(id) on delete cascade,
+  user_id bigint not null references users(id) on delete cascade,
+  role varchar(40) not null default 'member',
+  joined_at timestamptz not null default now(),
+  primary key (community_id, user_id)
+);
+
+create table if not exists event_discussion_posts (
+  id bigserial primary key,
+  event_id bigint not null references events(id) on delete cascade,
+  user_id bigint not null references users(id) on delete cascade,
+  parent_id bigint references event_discussion_posts(id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now()
 );
 
 create table if not exists notifications (
@@ -116,10 +206,18 @@ create table if not exists analytics (
 
 create index if not exists idx_events_title on events using gin (to_tsvector('english', title || ' ' || description));
 create index if not exists idx_events_category on events(category);
+create index if not exists idx_events_domain on events(domain);
 create index if not exists idx_events_deadline on events(registration_deadline);
 create index if not exists idx_events_college on events(college);
+create index if not exists idx_events_organization on events(conducting_organization);
 create index if not exists idx_registrations_event on registrations(event_id);
 create index if not exists idx_notifications_user_unread on notifications(user_id, is_read);
+create index if not exists idx_student_profiles_domains on student_profiles using gin (domains);
+create index if not exists idx_student_reminders_due on student_event_reminders(scheduled_for, sent_at);
+create index if not exists idx_student_achievements_user on student_achievements(user_id, awarded_at);
+create index if not exists idx_student_connections_lookup on student_connections(requester_id, receiver_id, status);
+create index if not exists idx_student_communities_domain on student_communities(domain);
+create index if not exists idx_event_discussions_event on event_discussion_posts(event_id, created_at);
 
 insert into storage.buckets (id, name, public)
 values ('event-posters', 'event-posters', true)

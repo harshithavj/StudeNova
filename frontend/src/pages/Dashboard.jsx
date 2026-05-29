@@ -1,6 +1,6 @@
 import { BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Bell, Bookmark, BriefcaseBusiness, CalendarDays, ClipboardList, Sparkles, UsersRound } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import Breadcrumbs from '../components/Breadcrumbs';
 import EventCard from '../components/EventCard';
@@ -43,6 +43,9 @@ const roleContent = {
 export default function Dashboard() {
   const { user } = useAuth();
   const { roleType = user?.role === 'college_admin' ? 'college-organizer' : user?.role === 'industry_organizer' ? 'industry-organizer' : 'student' } = useParams();
+  if (roleType === 'student' || user?.role === 'student') {
+    return <Navigate to="/dashboard/student" replace />;
+  }
   const content = roleContent[roleType] || roleContent.student;
 
   return (

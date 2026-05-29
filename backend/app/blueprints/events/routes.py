@@ -13,6 +13,10 @@ events_bp = Blueprint("events", __name__)
 def apply_event_filters(query):
     q = request.args.get("q")
     category = request.args.get("category")
+    domain = request.args.get("domain")
+    mode = request.args.get("mode")
+    eligibility = request.args.get("eligibility")
+    organization = request.args.get("organization")
     college = request.args.get("college")
     location = request.args.get("location")
     sort = request.args.get("sort", "trending")
@@ -20,6 +24,14 @@ def apply_event_filters(query):
         query = query.filter(Event.title.ilike(f"%{q}%") | Event.description.ilike(f"%{q}%"))
     if category:
         query = query.filter(Event.category == category)
+    if domain:
+        query = query.filter(Event.domain == domain)
+    if mode:
+        query = query.filter(Event.mode == mode.lower())
+    if eligibility:
+        query = query.filter(Event.eligibility.ilike(f"%{eligibility}%"))
+    if organization:
+        query = query.filter(Event.conducting_organization.ilike(f"%{organization}%"))
     if college:
         query = query.filter(Event.college.ilike(f"%{college}%"))
     if location:

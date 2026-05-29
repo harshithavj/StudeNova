@@ -1,5 +1,6 @@
 from uuid import uuid4
-from flask import Blueprint, jsonify
+from datetime import datetime
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from ...extensions import db
 from ...models import Event, Registration
@@ -23,6 +24,26 @@ def register_for_event(event_id):
     registration = Registration(user_id=user.id, event=event, qr_token=uuid4().hex)
     event.popularity_score += 5
     db.session.add(registration)
+    schedule_registration_reminders(registration)
+    db.session.commit()
+    return jsonify(registration_schema.dump(registration)), 201
+
+
+@registrations_bp.post("/events/<int:event_id>/complete-external")
+@jwt_required()
+def complete_external_registration(event_id):
+    user = current_user()
+    event = Event.query.get_or_404(event_id)
+    payload = request.get_json() or {}
+    registration = Registration.query.filter_by(user_id=user.id, event_id=event.id).first()
+    if not registration:
+        registration = Registration(user_id=user.id, event=event, qr_token=uuid4().hex)
+        db.session.add(registration)
+    registration.status = "registered"
+    registration.external_platform = payload.get("external_platform")
+    registration.external_registration_url = payload.get("external_registration_url") or event.registration_link
+    registration.marked_completed_at = datetime.utcnow()
+    event.popularity_score += 3
     schedule_registration_reminders(registration)
     db.session.commit()
     return jsonify(registration_schema.dump(registration)), 201

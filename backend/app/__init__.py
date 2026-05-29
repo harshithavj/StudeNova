@@ -36,6 +36,12 @@ def create_app(config_class=Config):
     app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
     app.register_blueprint(search_bp, url_prefix="/api/search")
 
+    if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite:///"):
+        with app.app_context():
+            from . import models  # noqa: F401
+
+            db.create_all()
+
     @app.get("/api/health")
     def health():
         return {"status": "ok", "service": "studenova-api"}

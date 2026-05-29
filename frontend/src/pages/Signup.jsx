@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import BackButton from '../components/BackButton';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Button from '../components/ui/Button';
+import PasswordInput from '../components/ui/PasswordInput';
 import { useAuth } from '../context/AuthContext';
 import { engineeringColleges } from '../data/engineeringColleges';
 import api from '../services/api';
@@ -204,6 +205,18 @@ export default function Signup() {
                 <option value="">Department</option>
                 {engineeringDepartments.map((department) => <option key={department} value={department}>{department}</option>)}
               </select>
+            ) : field === 'password' ? (
+              <PasswordInput
+                key={field}
+                required
+                minLength={8}
+                maxLength={15}
+                pattern="(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,15}"
+                title="Password must be 8-15 characters and include one uppercase letter, one number, and one special symbol."
+                placeholder={labels[field]}
+                value={form[field] || ''}
+                onChange={(e) => update(field, e.target.value)}
+              />
             ) : (
               <input key={field} type={field.includes('Email') || field === 'email' ? 'email' : field === 'password' ? 'password' : field === 'phone' || field === 'contactNumber' ? 'tel' : 'text'} required={field === 'password' || field === 'phone' || field.toLowerCase().includes('email') || field.includes('Name')} minLength={field === 'password' ? 8 : undefined} maxLength={field === 'password' ? 15 : undefined} pattern={field === 'password' ? '(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,15}' : undefined} title={field === 'password' ? 'Password must be 8-15 characters and include one uppercase letter, one number, and one special symbol.' : undefined} placeholder={labels[field]} value={form[field] || ''} onChange={(e) => update(field, e.target.value)} className="rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200" />
             )

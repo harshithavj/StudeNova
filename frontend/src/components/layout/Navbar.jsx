@@ -14,6 +14,7 @@ const navItems = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuth();
+  const dashboardPath = user?.role === 'college_admin' ? '/dashboard/college-organizer' : user?.role === 'industry_organizer' ? '/dashboard/industry-organizer' : '/dashboard/student';
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
@@ -40,7 +41,7 @@ export default function Navbar() {
             <>
               <Link to="/notifications" className="rounded-lg p-2 text-nova-muted hover:bg-slate-100 hover:text-nova-coral" aria-label="Notifications"><Bell size={20} /></Link>
               <Link to="/saved" className="rounded-lg p-2 text-nova-muted hover:bg-slate-100 hover:text-nova-coral" aria-label="Saved events"><Bookmark size={20} /></Link>
-              <Link to={`/dashboard/${user.role === 'college_admin' ? 'college-organizer' : user.role === 'industry_organizer' ? 'industry-organizer' : 'student'}`} className="rounded-lg p-2 text-nova-muted hover:bg-slate-100 hover:text-nova-coral" aria-label="Dashboard"><LayoutDashboard size={20} /></Link>
+              <Link to={dashboardPath} className="rounded-lg p-2 text-nova-muted hover:bg-slate-100 hover:text-nova-coral" aria-label="Dashboard"><LayoutDashboard size={20} /></Link>
               <button onClick={logout} className="rounded-lg p-2 text-nova-muted hover:bg-slate-100 hover:text-nova-coral" aria-label="Log out"><LogOut size={20} /></button>
             </>
           ) : (
@@ -57,7 +58,7 @@ export default function Navbar() {
       {open && (
         <div className="border-t border-slate-200 bg-white px-4 py-3 md:hidden">
           <div className="grid gap-2">
-            {[...navItems, ...(user ? [{ to: '/dashboard/student', label: 'Dashboard' }, { to: '/notifications', label: 'Notifications' }, { to: '/saved', label: 'Saved' }] : [{ to: '/login', label: 'Login' }, { to: '/auth/select-role', label: 'Get Started' }])].map((item) => (
+            {[...navItems, ...(user ? [{ to: dashboardPath, label: 'Dashboard' }, { to: '/notifications', label: 'Notifications' }, { to: '/saved', label: 'Saved' }] : [{ to: '/login', label: 'Login' }, { to: '/auth/select-role', label: 'Get Started' }])].map((item) => (
               <Link key={item.to} to={item.to} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2 font-semibold hover:bg-slate-100">{item.label}</Link>
             ))}
           </div>

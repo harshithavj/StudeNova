@@ -34,6 +34,12 @@ class SendOtpSchema(Schema):
     email = fields.Email(required=True)
 
 
+class ResetPasswordSchema(Schema):
+    email = fields.Email(required=True)
+    otp = fields.String(required=True, validate=validate.Length(equal=6))
+    password = fields.String(required=True, validate=validate.Length(min=8, max=15))
+
+
 def send_email_otp(email, otp):
     smtp_host = current_app.config.get("SMTP_HOST")
     smtp_port = current_app.config.get("SMTP_PORT")
@@ -131,6 +137,44 @@ def verify_otp():
             return jsonify({"message": "Invalid OTP"}), 400
         otp_store.pop(email, None)
     return jsonify({"message": "OTP accepted", "verified": True})
+
+
+@auth_bp.post("/forgot-password")
+@limiter.limit("5 per minute")
+def forgot_password():
+    payload = SendOtpSchema().load(request.get_json() or {})
+    email = payload["email"].lower()
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({"message": "No account found for this email"}), 404
+
+    otp = f"{random.randint(0, 999999):06d}"
+    sent, error_message = send_email_otp(email, otp)
+    if not sent:
+        return jsonify({"message": error_message}), 503
+    otp_store[email] = {"otp": otp, "expires_at": time.time() + OTP_TTL_SECONDS, "purpose": "password_reset"}
+    return jsonify({"message": "Password reset OTP sent", "email": email})
+
+
+@auth_bp.post("/reset-password")
+@limiter.limit("5 per minute")
+def reset_password():
+    payload = ResetPasswordSchema().load(request.get_json() or {})
+    email = payload["email"].lower()
+    otp_entry = otp_store.get(email)
+    if not otp_entry or otp_entry["expires_at"] < time.time() or otp_entry.get("purpose") != "password_reset":
+        otp_store.pop(email, None)
+        return jsonify({"message": "OTP expired. Please request a new reset code."}), 400
+    if otp_entry["otp"] != payload["otp"]:
+        return jsonify({"message": "Invalid OTP"}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({"message": "No account found for this email"}), 404
+    user.set_password(payload["password"])
+    otp_store.pop(email, None)
+    db.session.commit()
+    return jsonify({"message": "Password updated. You can login with your new password."})
 
 
 @auth_bp.get("/me")

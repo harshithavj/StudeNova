@@ -1,4 +1,4 @@
-import { CalendarPlus, ChevronDown, MapPin, QrCode, Users } from 'lucide-react';
+import { CalendarPlus, ChevronDown, ExternalLink, IndianRupee, MapPin, QrCode, ShieldCheck, Users } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import BackButton from '../components/BackButton';
@@ -11,6 +11,17 @@ import { daysUntil, formatDate } from '../utils/date';
 export default function EventDetails() {
   const { id } = useParams();
   const event = sampleEvents.find((item) => String(item.id) === id) || sampleEvents[0];
+  const markRegistered = () => {
+    const stored = JSON.parse(localStorage.getItem('studenova_student_events') || '[]');
+    if (!stored.some((item) => item.id === event.id)) {
+      localStorage.setItem('studenova_student_events', JSON.stringify([...stored, { ...event, status: 'Registered' }]));
+    }
+    toast.success('Added to My Events, calendar, and deadline alerts');
+  };
+  const openRegistration = () => {
+    window.open(event.registration_link, '_blank', 'noopener,noreferrer');
+    toast('Registration opens on the original event platform.');
+  };
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -26,15 +37,30 @@ export default function EventDetails() {
           </div>
           <div className="surface rounded-lg p-6">
             <h2 className="text-2xl font-black">Event details</h2>
-            <p className="mt-3 text-nova-muted">Open to undergraduate and postgraduate students from eligible colleges. Industry events may include role-specific screening by organizers.</p>
+            <p className="mt-3 text-nova-muted">This page is the single source of event information for rules, eligibility, team requirements, location, schedule, prizes, and organizer contact details.</p>
             <div className="mt-4 flex flex-wrap gap-2">{event.tags.map((tag) => <span key={tag} className="rounded-lg bg-white px-3 py-1 text-sm font-bold text-nova-muted ring-1 ring-slate-200">{tag}</span>)}</div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              ['Rules and guidelines', 'Submit original work, respect team-size limits, and follow organizer-specific judging rules published on the external platform.'],
+              ['Complete schedule', `${formatDate(event.date)} kickoff, mentor checkpoints during the event, final submission before the listed end window.`],
+              ['Venue / location', `${event.location} / ${event.mode}`],
+              ['Contact information', `${event.organizer} support desk and official event discussion channel.`],
+              ['Prize information', event.prize_pool ? `Prize pool of Rs. ${event.prize_pool.toLocaleString('en-IN')}` : 'Recognition, certificates, and recruiter visibility.'],
+              ['Team requirements', `Team size: ${event.team_size}. Eligibility: ${event.eligibility}.`]
+            ].map(([title, body]) => (
+              <div key={title} className="surface rounded-lg p-5">
+                <h3 className="font-black">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-nova-muted">{body}</p>
+              </div>
+            ))}
           </div>
           <div className="surface rounded-lg p-6">
             <h2 className="text-2xl font-black">FAQ</h2>
-            {['Who can register?', 'Will I get calendar reminders?', 'How does QR check-in work?'].map((item) => (
+            {['Who can register?', 'Will I get calendar reminders?', 'Where does registration happen?', 'Can I upload certificates after the event?'].map((item) => (
               <details key={item} className="mt-3 rounded-lg bg-white p-4 ring-1 ring-slate-200">
                 <summary className="flex cursor-pointer list-none items-center justify-between font-bold">{item}<ChevronDown size={18} /></summary>
-                <p className="mt-2 text-sm leading-6 text-nova-muted">Organizers publish verification rules, reminders, and check-in instructions directly through STUDENOVA.</p>
+                <p className="mt-2 text-sm leading-6 text-nova-muted">Registration happens on the original event platform. STUDENOVA tracks your saved status, reminders, certificates, achievements, and personal calendar after you mark registration completed.</p>
               </details>
             ))}
           </div>
@@ -46,11 +72,14 @@ export default function EventDetails() {
               <span className="flex items-center gap-2"><CalendarPlus size={18} />Event: {formatDate(event.date)}</span>
               <span className="flex items-center gap-2"><CalendarPlus size={18} />Deadline: {formatDate(event.deadline)}</span>
               <span className="flex items-center gap-2"><MapPin size={18} />{event.location} / {event.mode}</span>
+              <span className="flex items-center gap-2"><ShieldCheck size={18} />{event.eligibility}</span>
+              <span className="flex items-center gap-2"><IndianRupee size={18} />{event.prize_pool ? `Rs. ${event.prize_pool.toLocaleString('en-IN')}` : 'No cash prize listed'}</span>
               <span className="flex items-center gap-2"><Users size={18} />{event.seats_available} seats available</span>
             </div>
             <div className="mt-5 rounded-lg bg-nova-peach p-4 text-sm font-bold text-nova-coral">{daysUntil(event.deadline)} days left to register</div>
             <div className="mt-5 grid gap-3">
-              <Button onClick={() => toast.success('Registration request submitted')} variant="accent">Register Now</Button>
+              <Button onClick={openRegistration} variant="accent" disabled={event.registration_status === 'Closed'}><ExternalLink size={16} />Register on Original Platform</Button>
+              <Button variant="secondary" onClick={markRegistered}>Mark Registration Completed</Button>
               <Button variant="secondary" onClick={() => toast.success('Added to your calendar')}>Export to Google Calendar</Button>
             </div>
           </div>

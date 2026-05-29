@@ -16,6 +16,13 @@ const RoleSelection = lazy(() => import('./pages/RoleSelection'));
 const ExploreEvents = lazy(() => import('./pages/ExploreEvents'));
 const EventDetails = lazy(() => import('./pages/EventDetails'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const StudentDashboard = lazy(() => import('./pages/StudentDashboard'));
+const StudentDiscover = lazy(() => import('./pages/StudentDiscover'));
+const StudentMyEvents = lazy(() => import('./pages/StudentMyEvents'));
+const StudentNotificationsAlerts = lazy(() => import('./pages/StudentNotificationsAlerts'));
+const StudentHistory = lazy(() => import('./pages/StudentHistory'));
+const StudentAchievementsNetworking = lazy(() => import('./pages/StudentAchievementsNetworking'));
+const StudentProfile = lazy(() => import('./pages/StudentProfile'));
 const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Notifications = lazy(() => import('./pages/Notifications'));
@@ -41,6 +48,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard/student" element={<StudentDashboard />} />
+                  <Route path="/student-dashboard" element={<StudentDashboard />} />
+                  <Route path="/student/discover" element={<StudentDiscover />} />
+                  <Route path="/student/my-events" element={<StudentMyEvents />} />
+                  <Route path="/student/notifications" element={<StudentNotificationsAlerts />} />
+                  <Route path="/student/history" element={<StudentHistory />} />
+                  <Route path="/student/achievements-networking" element={<StudentAchievementsNetworking />} />
+                  <Route path="/student/profile" element={<StudentProfile />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/dashboard/:roleType" element={<Dashboard />} />
                   <Route path="/notifications" element={<Notifications />} />

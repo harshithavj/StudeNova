@@ -1,0 +1,69 @@
+import { Link } from 'react-router-dom';
+import { Clock3 } from 'lucide-react';
+import Button from '../components/ui/Button';
+import StudentShell from '../components/student/StudentShell';
+import { useAuth } from '../context/AuthContext';
+import { sampleEvents } from '../data/mockData';
+import { formatDate } from '../utils/date';
+
+function readStored(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function EventRow({ event, registrationStatus, eventStatus }) {
+  return (
+    <article className="rounded-lg bg-white p-4 ring-1 ring-slate-200">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="font-black">{event.title}</h3>
+          <p className="mt-1 text-sm text-nova-muted">{event.category} / {event.domain}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-lg bg-nova-peach px-2 py-1 text-xs font-bold text-nova-coral">{registrationStatus}</span>
+          <span className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{eventStatus}</span>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-nova-muted">
+        <span className="flex items-center gap-2"><Clock3 size={16} />Deadline: {formatDate(event.deadline)}</span>
+        <Button as={Link} to={`/events/${event.id}`} size="sm" variant="secondary">Quick Access</Button>
+      </div>
+    </article>
+  );
+}
+
+export default function StudentMyEvents() {
+  const { user } = useAuth();
+  const saved = readStored('studenova_saved_events');
+  const registered = readStored('studenova_student_events');
+  const sections = [
+    ['Saved Events', saved.length ? saved : sampleEvents.slice(3, 5), 'Saved', 'Open'],
+    ['Registered Events', registered.length ? registered : sampleEvents.slice(0, 2), 'Registered', 'Upcoming'],
+    ['Ongoing Events', sampleEvents.slice(1, 2), 'Registered', 'Ongoing'],
+    ['Completed Events', sampleEvents.slice(2, 3), 'Completed', 'Completed'],
+    ['Waiting List Events', sampleEvents.slice(4, 5), 'Waitlisted', 'Waiting List'],
+    ['Cancelled Events', sampleEvents.slice(5, 6), 'Cancelled', 'Cancelled']
+  ];
+
+  return (
+    <StudentShell user={user}>
+      <div className="space-y-6">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-wider text-nova-coral">My Events</p>
+          <h2 className="text-4xl font-black">"Track, Manage, and Attend with Ease"</h2>
+        </div>
+        {sections.map(([title, events, registrationStatus, eventStatus]) => (
+          <section key={title} className="surface rounded-lg p-6">
+            <h3 className="text-2xl font-black">{title}</h3>
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              {events.map((event) => <EventRow key={`${title}-${event.id}`} event={event} registrationStatus={registrationStatus} eventStatus={eventStatus} />)}
+            </div>
+          </section>
+        ))}
+      </div>
+    </StudentShell>
+  );
+}
