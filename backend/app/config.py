@@ -17,6 +17,7 @@ class Config:
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "event-posters")
+    SUPABASE_VERIFICATION_BUCKET = os.getenv("SUPABASE_VERIFICATION_BUCKET", "organizer-verifications")
     RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
     MAIL_FROM = os.getenv("MAIL_FROM")
     SMTP_HOST = os.getenv("SMTP_HOST")

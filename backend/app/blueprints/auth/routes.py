@@ -6,14 +6,24 @@ from email.message import EmailMessage
 from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required
 from marshmallow import Schema, fields, validate
+from werkzeug.utils import secure_filename
 from ...extensions import db, limiter
-from ...models import User
+from ...models import OrganizerVerificationAsset, User
 from ...schemas import user_schema
+from ...services.storage import upload_organizer_verification
 from ...utils.auth import current_user
 
 auth_bp = Blueprint("auth", __name__)
 otp_store = {}
 OTP_TTL_SECONDS = 300
+MAX_VERIFICATION_FILE_SIZE = 3 * 1024 * 1024
+ALLOWED_VERIFICATION_CONTENT_TYPES = {"application/pdf", "image/jpeg", "image/png", "image/webp"}
+ALLOWED_VERIFICATION_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp"}
+COLLEGE_VERIFICATION_FILES = {
+    "collegeIdProof": "college_id_proof",
+    "clubDetails": "club_details",
+    "clubMembershipProof": "club_membership_proof",
+}
 
 
 class SignupSchema(Schema):
@@ -38,6 +48,36 @@ class ResetPasswordSchema(Schema):
     email = fields.Email(required=True)
     otp = fields.String(required=True, validate=validate.Length(equal=6))
     password = fields.String(required=True, validate=validate.Length(min=8, max=15))
+
+
+def is_allowed_verification_file(file_storage):
+    filename = file_storage.filename or ""
+    extension = f".{filename.rsplit('.', 1)[-1].lower()}" if "." in filename else ""
+    return file_storage.content_type in ALLOWED_VERIFICATION_CONTENT_TYPES and extension in ALLOWED_VERIFICATION_EXTENSIONS
+
+
+def is_allowed_verification_size(file_storage):
+    position = file_storage.stream.tell()
+    file_storage.stream.seek(0, 2)
+    size = file_storage.stream.tell()
+    file_storage.stream.seek(position)
+    return size < MAX_VERIFICATION_FILE_SIZE
+
+
+def validate_college_organizer_files(files):
+    missing = [key for key in COLLEGE_VERIFICATION_FILES if key not in files or not files[key].filename]
+    if missing:
+        return f"Missing required verification file(s): {', '.join(missing)}"
+
+    invalid = [key for key in COLLEGE_VERIFICATION_FILES if not is_allowed_verification_file(files[key])]
+    if invalid:
+        return f"Verification file(s) must be PDF or image files: {', '.join(invalid)}"
+
+    oversized = [key for key in COLLEGE_VERIFICATION_FILES if not is_allowed_verification_size(files[key])]
+    if oversized:
+        return "Add files less than 3MB"
+
+    return None
 
 
 def send_email_otp(email, otp):
@@ -74,9 +114,14 @@ def send_email_otp(email, otp):
 @auth_bp.post("/signup")
 @limiter.limit("10 per minute")
 def signup():
-    payload = SignupSchema().load(request.get_json() or {})
+    payload = SignupSchema().load(request.get_json() if request.is_json else request.form.to_dict())
     if User.query.filter_by(email=payload["email"].lower()).first():
         return jsonify({"message": "Email is already registered"}), 409
+    if payload["role"] == "college_admin":
+        file_error = validate_college_organizer_files(request.files)
+        if file_error:
+            return jsonify({"message": file_error}), 400
+
     user = User(
         name=payload["name"],
         email=payload["email"].lower(),
@@ -86,6 +131,30 @@ def signup():
     )
     user.set_password(payload["password"])
     db.session.add(user)
+    db.session.flush()
+
+    if payload["role"] == "college_admin":
+        try:
+            for field_name, asset_type in COLLEGE_VERIFICATION_FILES.items():
+                file = request.files[field_name]
+                filename = secure_filename(file.filename)
+                path = f"organizer-verifications/{user.id}/{asset_type}/{int(time.time())}-{filename}"
+                file_url = upload_organizer_verification(file, path)
+                db.session.add(OrganizerVerificationAsset(
+                    user_id=user.id,
+                    asset_type=asset_type,
+                    file_url=file_url,
+                    file_name=filename,
+                    content_type=file.content_type,
+                ))
+        except RuntimeError as error:
+            db.session.rollback()
+            return jsonify({"message": str(error)}), 503
+        except Exception:
+            current_app.logger.exception("Failed to upload organizer verification assets")
+            db.session.rollback()
+            return jsonify({"message": "Unable to upload organizer verification files"}), 503
+
     db.session.commit()
     token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
     return jsonify({"access_token": token, "user": user_schema.dump(user)}), 201

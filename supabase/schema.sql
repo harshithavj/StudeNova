@@ -32,6 +32,17 @@ create table if not exists organizers (
   created_at timestamptz not null default now()
 );
 
+create table if not exists organizer_verification_assets (
+  id bigserial primary key,
+  user_id bigint not null references users(id) on delete cascade,
+  asset_type varchar(80) not null check (asset_type in ('college_id_proof', 'club_details', 'club_membership_proof')),
+  file_url text not null,
+  file_name varchar(255) not null,
+  content_type varchar(120) not null,
+  status varchar(30) not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz not null default now()
+);
+
 create table if not exists events (
   id bigserial primary key,
   title varchar(180) not null,
@@ -205,6 +216,7 @@ create table if not exists analytics (
 );
 
 create index if not exists idx_events_title on events using gin (to_tsvector('english', title || ' ' || description));
+create index if not exists idx_organizer_verification_assets_user on organizer_verification_assets(user_id);
 create index if not exists idx_events_category on events(category);
 create index if not exists idx_events_domain on events(domain);
 create index if not exists idx_events_deadline on events(registration_deadline);
@@ -221,4 +233,8 @@ create index if not exists idx_event_discussions_event on event_discussion_posts
 
 insert into storage.buckets (id, name, public)
 values ('event-posters', 'event-posters', true)
+on conflict (id) do nothing;
+
+insert into storage.buckets (id, name, public)
+values ('organizer-verifications', 'organizer-verifications', true)
 on conflict (id) do nothing;

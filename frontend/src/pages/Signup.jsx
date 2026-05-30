@@ -18,7 +18,7 @@ const roleConfig = {
   'college-organizer': {
     label: 'College Organizer',
     role: 'college_admin',
-    fields: ['organizerName', 'collegeName', 'officialEmail', 'position', 'password']
+    fields: ['organizerName', 'collegeName', 'officialEmail', 'yearOfStudy', 'password']
   },
   'industry-organizer': {
     label: 'Industry Organizer',
@@ -36,7 +36,7 @@ const labels = {
   password: 'Password',
   collegeName: 'College Name',
   department: 'Department',
-  yearOfStudy: 'Year',
+  yearOfStudy: 'Year of Study',
   usn: 'USN',
   phone: 'Phone Number',
   position: 'Position',
@@ -47,7 +47,42 @@ const labels = {
   contactNumber: 'Contact Number'
 };
 
-const studyYears = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+const studyYears = ['1', '2', '3', '4'];
+const maxVerificationFileSize = 3 * 1024 * 1024;
+const acceptedVerificationTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+const acceptedVerificationExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.webp'];
+
+const verificationAssets = {
+  'college-organizer': [
+    {
+      key: 'collegeIdProof',
+      label: 'College ID Proof',
+      hint: 'Upload your valid college ID as a verified PDF or image.'
+    },
+    {
+      key: 'clubDetails',
+      label: 'Club Details',
+      hint: 'Upload the club registration, profile, or official details document.'
+    },
+    {
+      key: 'clubMembershipProof',
+      label: 'Proof of Club Membership',
+      hint: 'Upload proof that confirms your role or membership in the club.'
+    }
+  ],
+  'industry-organizer': [
+    {
+      key: 'logo',
+      label: 'Avatar / Logo Upload',
+      hint: 'Upload your organization logo as a PDF or image.'
+    },
+    {
+      key: 'verificationDocument',
+      label: 'Verification Document Upload',
+      hint: 'Upload an official verification document as a PDF or image.'
+    }
+  ]
+};
 
 const engineeringDepartments = [
   'Aeronautical Engineering',
@@ -113,6 +148,34 @@ export default function Signup() {
   }, [form.password]);
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const isBusy = loading || otpLoading;
+  const currentVerificationAssets = verificationAssets[roleType] || verificationAssets['industry-organizer'];
+
+  const handleVerificationFileChange = (key, event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      update(key, null);
+      return;
+    }
+
+    const hasAllowedType = acceptedVerificationTypes.includes(file.type);
+    const hasAllowedExtension = acceptedVerificationExtensions.some((extension) => file.name.toLowerCase().endsWith(extension));
+
+    if (!hasAllowedType && !hasAllowedExtension) {
+      event.target.value = '';
+      update(key, null);
+      toast.error('Upload a verified PDF or image file.');
+      return;
+    }
+
+    if (file.size > maxVerificationFileSize) {
+      event.target.value = '';
+      update(key, null);
+      toast.error('Add files less than 3MB');
+      return;
+    }
+
+    update(key, file);
+  };
 
   const sendEmailOtp = async () => {
     setOtpLoading(true);
@@ -150,14 +213,27 @@ export default function Signup() {
     }
     try {
       await verifyOtp();
-      await signup({
+      const signupPayload = {
         name: form.fullName || form.organizerName || form.companyName,
         email: form.email || form.officialEmail || form.workEmail,
         password: form.password,
         role: config.role,
         college: form.collegeName,
         company: form.companyName
-      });
+      };
+
+      if (config.role === 'college_admin') {
+        const multipartPayload = new FormData();
+        Object.entries(signupPayload).forEach(([key, value]) => {
+          if (value) multipartPayload.append(key, value);
+        });
+        currentVerificationAssets.forEach((asset) => {
+          if (form[asset.key]) multipartPayload.append(asset.key, form[asset.key]);
+        });
+        await signup(multipartPayload);
+      } else {
+        await signup(signupPayload);
+      }
       navigate(`/dashboard/${roleType}`);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Unable to create account');
@@ -197,7 +273,7 @@ export default function Signup() {
               </div>
             ) : field === 'yearOfStudy' ? (
               <select key={field} required value={form[field] || ''} onChange={(e) => update(field, e.target.value)} className="rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200">
-                <option value="">Year</option>
+                <option value="">Year of Study</option>
                 {studyYears.map((year) => <option key={year} value={year}>{year}</option>)}
               </select>
             ) : field === 'department' ? (
@@ -228,10 +304,19 @@ export default function Signup() {
             </div>
           )}
           {!isStudent && step === 2 && (
-            <>
-              <label className="rounded-lg bg-white p-4 text-sm font-bold text-nova-muted ring-1 ring-slate-200">Avatar / Logo Upload<input type="file" className="mt-3 block w-full text-sm" /></label>
-              <label className="rounded-lg bg-white p-4 text-sm font-bold text-nova-muted ring-1 ring-slate-200">Verification Document Upload<input type="file" className="mt-3 block w-full text-sm" /></label>
-            </>
+            currentVerificationAssets.map((asset) => (
+              <label key={asset.key} className="rounded-lg bg-white p-4 text-sm font-bold text-nova-muted ring-1 ring-slate-200">
+                {asset.label}
+                <span className="mt-1 block text-xs font-semibold leading-5 text-slate-500">{asset.hint}<br></br> Max file size: 3MB.</span>
+                <input
+                  type="file"
+                  required
+                  accept="application/pdf,image/jpeg,image/png,image/webp"
+                  className="mt-3 block w-full text-sm"
+                  onChange={(event) => handleVerificationFileChange(asset.key, event)}
+                />
+              </label>
+            ))
           )}
           {((isStudent && step === 2) || (!isStudent && step === 3)) && (
             <div className="md:col-span-2">
