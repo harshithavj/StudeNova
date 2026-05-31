@@ -60,7 +60,13 @@ export function AuthProvider({ children }) {
     toast.success('Signed out');
   };
 
-  const value = useMemo(() => ({ user, loading, login, signup, logout, isAuthenticated: Boolean(user) }), [user, loading]);
+  const clearSession = () => {
+    localStorage.removeItem('studenova_token');
+    localStorage.removeItem('studenova_user');
+    setUser(null);
+  };
+
+  const value = useMemo(() => ({ user, loading, login, signup, logout, clearSession, isAuthenticated: Boolean(user) }), [user, loading]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

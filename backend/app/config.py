@@ -14,6 +14,15 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///studenova.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+    ADMIN_FRONTEND_ORIGIN = os.getenv("ADMIN_FRONTEND_ORIGIN", "http://localhost:5174")
+    FRONTEND_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv(
+            "FRONTEND_ORIGINS",
+            f"{FRONTEND_ORIGIN},{ADMIN_FRONTEND_ORIGIN}",
+        ).split(",")
+        if origin.strip()
+    ]
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "event-posters")

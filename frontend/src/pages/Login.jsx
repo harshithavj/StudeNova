@@ -13,7 +13,7 @@ export default function Login() {
   const [resetForm, setResetForm] = useState({ email: '', otp: '', password: '', confirmPassword: '' });
   const [resetStep, setResetStep] = useState('login');
   const [resetLoading, setResetLoading] = useState(false);
-  const { login, loading } = useAuth();
+  const { clearSession, login, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isResetMode = resetStep !== 'login';
@@ -21,7 +21,12 @@ export default function Login() {
   const submit = async (event) => {
     event.preventDefault();
     try {
-      await login(form);
+      const signedInUser = await login(form);
+      if (signedInUser.role === 'admin') {
+        clearSession();
+        toast.error('Use the separate STUDENOVA Admin website for admin access');
+        return;
+      }
       navigate(location.state?.from?.pathname || '/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Unable to login');

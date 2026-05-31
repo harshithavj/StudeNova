@@ -69,7 +69,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             </Routes>
           </Suspense>
         </BrowserRouter>
-        <Toaster position="top-right" />
+        <Toaster
+          position="top-center"
+          containerStyle={{
+            top: '50%',
+            transform: 'translateY(-50%)'
+          }}
+        />
       </AuthProvider>
     </ThemeProvider>
   </React.StrictMode>

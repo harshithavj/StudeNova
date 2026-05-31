@@ -24,6 +24,10 @@ COLLEGE_VERIFICATION_FILES = {
     "clubDetails": "club_details",
     "clubMembershipProof": "club_membership_proof",
 }
+INDUSTRY_VERIFICATION_FILES = {
+    "logo": "logo",
+    "verificationDocument": "verification_document",
+}
 
 
 class SignupSchema(Schema):
@@ -38,6 +42,13 @@ class SignupSchema(Schema):
 class LoginSchema(Schema):
     email = fields.Email(required=True)
     password = fields.String(required=True)
+
+
+class AdminSignupSchema(Schema):
+    name = fields.String(required=True, validate=validate.Length(min=2))
+    email = fields.Email(required=True)
+    password = fields.String(required=True, validate=validate.Length(min=8))
+    otp = fields.String(required=True, validate=validate.Length(equal=6))
 
 
 class SendOtpSchema(Schema):
@@ -133,10 +144,19 @@ def signup():
     db.session.add(user)
     db.session.flush()
 
-    if payload["role"] == "college_admin":
+    if payload["role"] in ["college_admin", "industry_organizer"]:
         try:
-            for field_name, asset_type in COLLEGE_VERIFICATION_FILES.items():
-                file = request.files[field_name]
+            verification_files = COLLEGE_VERIFICATION_FILES if payload["role"] == "college_admin" else INDUSTRY_VERIFICATION_FILES
+            for field_name, asset_type in verification_files.items():
+                file = request.files.get(field_name)
+                if not file or not file.filename:
+                    continue
+                if not is_allowed_verification_file(file):
+                    db.session.rollback()
+                    return jsonify({"message": "Verification file(s) must be PDF or image files"}), 400
+                if not is_allowed_verification_size(file):
+                    db.session.rollback()
+                    return jsonify({"message": "Add files less than 3MB"}), 400
                 filename = secure_filename(file.filename)
                 path = f"organizer-verifications/{user.id}/{asset_type}/{int(time.time())}-{filename}"
                 file_url = upload_organizer_verification(file, path)
@@ -158,6 +178,33 @@ def signup():
     db.session.commit()
     token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
     return jsonify({"access_token": token, "user": user_schema.dump(user)}), 201
+
+
+@auth_bp.post("/admin-signup")
+@limiter.limit("5 per minute")
+def admin_signup():
+    payload = AdminSignupSchema().load(request.get_json() or {})
+    email = payload["email"].lower()
+    if User.query.filter_by(email=email).first():
+        return jsonify({"message": "Email is already registered"}), 409
+
+    otp_entry = otp_store.get(email)
+    if not otp_entry or otp_entry["expires_at"] < time.time():
+        otp_store.pop(email, None)
+        return jsonify({"message": "OTP expired. Please request a new OTP."}), 400
+    if otp_entry["otp"] != payload["otp"]:
+        return jsonify({"message": "Invalid OTP"}), 400
+
+    user = User(
+        name=payload["name"],
+        email=email,
+        role="admin",
+    )
+    user.set_password(payload["password"])
+    db.session.add(user)
+    otp_store.pop(email, None)
+    db.session.commit()
+    return jsonify({"message": "Admin account created. Please login."}), 201
 
 
 @auth_bp.post("/login")

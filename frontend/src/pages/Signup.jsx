@@ -222,7 +222,7 @@ export default function Signup() {
         company: form.companyName
       };
 
-      if (config.role === 'college_admin') {
+      if (['college_admin', 'industry_organizer'].includes(config.role)) {
         const multipartPayload = new FormData();
         Object.entries(signupPayload).forEach(([key, value]) => {
           if (value) multipartPayload.append(key, value);
