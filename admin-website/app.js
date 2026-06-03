@@ -45,12 +45,15 @@ const pageSections = [
   '#verificationCenter',
   '#verificationDetails',
   '#platformMonitoring',
+  '#eventCategoryPanel',
   '.event-monitoring-panel',
   '.lower-grid',
   '#userManagement',
-  '#studentsManagement',
-  '#collegeManagement',
-  '#industryManagement',
+  '#studentsManagementPanel',
+  '#collegeManagementPanel',
+  '#industryManagementPanel',
+  '#collegeVerificationPanel',
+  '#industryVerificationPanel',
   '#achievementVerificationPage',
   '#achievementVerification',
   '#reportsModerationPage',
@@ -65,9 +68,9 @@ const pageSections = [
 
 const pageSectionMap = {
   dashboard: ['#overview', '.lower-grid'],
-  verification: ['#verificationCenter', '#verificationDetails'],
+  verification: ['#verificationCenter', '#collegeVerificationPanel', '#industryVerificationPanel', '#verificationDetails'],
   monitoring: ['#platformMonitoring', '.event-monitoring-panel', '.lower-grid'],
-  users: ['#userManagement', '#studentsManagement', '#collegeManagement', '#industryManagement'],
+  users: ['#userManagement', '#studentsManagementPanel', '#collegeManagementPanel', '#industryManagementPanel'],
   achievements: ['#achievementVerificationPage', '#achievementVerification'],
   reports: ['#reportsModerationPage', '#reportsModeration'],
   analytics: ['#analyticsPage', '#analytics'],
@@ -282,7 +285,7 @@ function renderVerificationDetails(userId) {
 }
 
 async function updateVerification(userId, action) {
-  await request(`/analytics/admin-verifications/${userId}`, {
+  await request(`/admin/verifications/${userId}`, {
     method: 'PATCH',
     headers: authHeaders(),
     body: JSON.stringify({ action })
@@ -366,6 +369,12 @@ function renderEventMonitoring(groups = {}) {
               <strong>${event.event_name}</strong>
               <span>${event.organizer} - ${event.category}</span>
               <span>${event.participants} participants - ${event.status} - ${formatDate(event.date)}</span>
+              <span class="row-actions">
+                <button class="small-button" type="button" data-event-action="publish" data-event-id="${event.id}">Publish</button>
+                <button class="small-button" type="button" data-event-action="complete" data-event-id="${event.id}">Complete</button>
+                <button class="small-button" type="button" data-event-action="flag" data-event-id="${event.id}">Flag</button>
+                <button class="small-button reject-button" type="button" data-event-action="cancel" data-event-id="${event.id}">Cancel</button>
+              </span>
             </div>
           `).join('') : '<p class="empty-state">No events in this queue.</p>'}
         </div>
@@ -380,12 +389,14 @@ function renderManagementList(selector, items = [], type = 'student') {
     <article class="management-card">
       <h3>${user.name}</h3>
       <p>${user.email}</p>
+      <p>Status: ${statusLabel(user.account_status || 'active')}</p>
       <p>${type === 'student' ? `${user.participation_count} participations - ${user.achievements_count} achievements - ${user.reports_against_user} reports`
         : `${statusLabel(user.verification_status)} - ${user.events_created} events - ${user.college || user.company || 'Organization not provided'}`}</p>
-      <div class="disabled-actions">
-        <button class="small-button" disabled>${type === 'student' ? 'Suspend' : 'Approve'}</button>
-        <button class="small-button" disabled>${type === 'student' ? 'Activate' : 'Suspend'}</button>
-        <button class="small-button reject-button" disabled>${type === 'student' ? 'Delete' : 'Ban'}</button>
+      <div class="row-actions">
+        ${type !== 'student' ? `<button class="small-button approve-button" type="button" data-view-verification="${user.id}">Review Verification</button>` : ''}
+        <button class="small-button" type="button" data-user-action="activate" data-user-id="${user.id}">Activate</button>
+        <button class="small-button" type="button" data-user-action="suspend" data-user-id="${user.id}">Suspend</button>
+        <button class="small-button reject-button" type="button" data-user-action="ban" data-user-id="${user.id}">Ban</button>
       </div>
     </article>
   `).join('') : '<p class="empty-state">No users found.</p>';
@@ -466,7 +477,7 @@ async function loadDashboard() {
   refreshButton.disabled = true;
   refreshButton.textContent = 'Loading...';
   try {
-    const data = await request('/analytics/admin-activity', {
+    const data = await request('/admin/activity', {
       headers: authHeaders()
     });
     renderStats(data.totals);
@@ -598,7 +609,7 @@ notificationForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   notificationMessage.textContent = '';
   try {
-    const data = await request('/analytics/admin-notifications', {
+    const data = await request('/admin/notifications', {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({
@@ -640,7 +651,7 @@ document.addEventListener('click', async (event) => {
   if (achievementButton) {
     achievementButton.disabled = true;
     try {
-      await request(`/analytics/admin-achievements/${achievementButton.dataset.achievementId}`, {
+      await request(`/admin/achievements/${achievementButton.dataset.achievementId}`, {
         method: 'PATCH',
         headers: authHeaders(),
         body: JSON.stringify({ action: achievementButton.dataset.achievementAction })
@@ -650,6 +661,40 @@ document.addEventListener('click', async (event) => {
       setMessage(error.message);
     } finally {
       achievementButton.disabled = false;
+    }
+  }
+
+  const userButton = event.target.closest('[data-user-action]');
+  if (userButton) {
+    userButton.disabled = true;
+    try {
+      await request(`/admin/users/${userButton.dataset.userId}`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ action: userButton.dataset.userAction })
+      });
+      await loadDashboard();
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      userButton.disabled = false;
+    }
+  }
+
+  const eventButton = event.target.closest('[data-event-action]');
+  if (eventButton) {
+    eventButton.disabled = true;
+    try {
+      await request(`/admin/events/${eventButton.dataset.eventId}`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ action: eventButton.dataset.eventAction })
+      });
+      await loadDashboard();
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      eventButton.disabled = false;
     }
   }
 });

@@ -1,74 +1,42 @@
-# STUDENOVA
+# StudeNova Project
 
-STUDENOVA is a centralized student event discovery and management platform for academic, cultural, technical, and industry opportunities.
-
-Tagline: **Never Miss an Opportunity Again**
-
-## Stack
-
-- Frontend: React, React Router, Axios, Tailwind CSS, Framer Motion, Recharts
-- Backend: Flask, REST blueprints, JWT auth, SQLAlchemy, Marshmallow, Flask-Limiter
-- Database: Supabase PostgreSQL
-- Storage: Supabase Storage for event posters
-
-## Folder Structure
+This workspace is split into two separate website folders:
 
 ```text
-backend/
-  app/
-    blueprints/
-    extensions/
-    models/
-    schemas/
-    services/
-    utils/
-  run.py
-  requirements.txt
-frontend/
-  src/
-    components/
-    context/
-    data/
-    hooks/
-    pages/
-    services/
-    utils/
-supabase/
-  schema.sql
-docs/
-  API.md
-  DEPLOYMENT.md
+admin-website/
+  Standalone admin portal
+
+studenova-website/
+  Main StudeNova website, backend API, docs, and Supabase schema
 ```
 
-## Run Frontend
+## Admin Portal
 
-```bash
-cd frontend
-cp .env.example .env
-npm install
+Start the backend API:
+
+```powershell
+cd "c:\Users\j\OneDrive\Documents\StudeNova 2\studenova-website\backend"
+python run.py
+```
+
+In another terminal, start the admin website:
+
+```powershell
+cd "c:\Users\j\OneDrive\Documents\StudeNova 2"
+python -m http.server 5174 -d admin-website
+```
+
+Open `http://localhost:5174`.
+
+## Main StudeNova Website
+
+Start the frontend:
+
+```powershell
+cd "c:\Users\j\OneDrive\Documents\StudeNova 2\studenova-website\frontend"
 npm run dev
 ```
 
 Open `http://localhost:5173`.
 
-## Run Backend
-
-```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.example .env
-python run.py
-```
-
-The API runs on `http://localhost:5000/api`.
-
-## Connect Supabase
-
-1. Create a Supabase project.
-2. Run `supabase/schema.sql` in the Supabase SQL editor.
-3. Set `DATABASE_URL` in `backend/.env` using Supabase's PostgreSQL connection string.
-4. Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_STORAGE_BUCKET`.
-5. Set `VITE_API_BASE_URL=http://localhost:5000/api` in `frontend/.env`.
-
+The backend API runs at `http://localhost:5000/api`.

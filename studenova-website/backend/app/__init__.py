@@ -27,8 +27,10 @@ def create_app(config_class=Config):
     from .blueprints.bookmarks.routes import bookmarks_bp
     from .blueprints.analytics.routes import analytics_bp
     from .blueprints.search.routes import search_bp
+    from .blueprints.admin.routes import admin_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(events_bp, url_prefix="/api/events")
     app.register_blueprint(registrations_bp, url_prefix="/api/registrations")
     app.register_blueprint(notifications_bp, url_prefix="/api/notifications")
@@ -41,6 +43,7 @@ def create_app(config_class=Config):
             from . import models  # noqa: F401
 
             db.create_all()
+            sync_sqlite_schema(app)
 
     @app.get("/api/health")
     def health():
@@ -103,3 +106,24 @@ def create_app(config_class=Config):
         return jsonify({"message": "Resource not found"}), 404
 
     return app
+
+
+def sync_sqlite_schema(app):
+    """Add model columns missing from an existing local SQLite dev database."""
+    from sqlalchemy import inspect, text
+    from sqlalchemy.schema import CreateColumn
+
+    inspector = inspect(db.engine)
+    existing_tables = set(inspector.get_table_names())
+    with db.engine.begin() as connection:
+        for table in db.metadata.sorted_tables:
+            if table.name not in existing_tables:
+                continue
+            existing_columns = {column["name"] for column in inspector.get_columns(table.name)}
+            for column in table.columns:
+                if column.name in existing_columns:
+                    continue
+                compiled_column = str(CreateColumn(column).compile(dialect=db.engine.dialect))
+                compiled_column = compiled_column.replace(" NOT NULL", "")
+                app.logger.info("Adding missing SQLite column %s.%s", table.name, column.name)
+                connection.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN {compiled_column}'))

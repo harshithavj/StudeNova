@@ -77,6 +77,7 @@ def serialize_user_management(user):
         "name": user.name,
         "email": user.email,
         "role": user.role,
+        "account_status": getattr(user, "account_status", "active"),
         "college": user.college,
         "company": user.company,
         "verification_status": organizer_verification_status(user) if user.role in ["college_admin", "industry_organizer"] else "not_required",

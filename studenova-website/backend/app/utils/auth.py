@@ -17,6 +17,8 @@ def roles_required(*roles):
           user = current_user()
           if not user or user.role not in roles:
               return jsonify({"message": "You do not have permission to perform this action"}), 403
+          if getattr(user, "account_status", "active") != "active":
+              return jsonify({"message": "This account is not active"}), 403
           return fn(*args, **kwargs)
         return wrapper
     return decorator

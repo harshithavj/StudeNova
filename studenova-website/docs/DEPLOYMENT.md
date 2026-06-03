@@ -10,7 +10,7 @@
 
 ## Backend on Render or Railway
 
-Root directory: `backend`
+Root directory: `studenova-website/backend`
 
 Build command:
 
@@ -36,7 +36,7 @@ Required environment variables:
 
 ## Frontend on Vercel or Netlify
 
-Root directory: `frontend`
+Root directory: `studenova-website/frontend`
 
 Build command:
 

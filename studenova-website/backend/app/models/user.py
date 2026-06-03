@@ -11,6 +11,7 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(40), nullable=False, default="student")
+    account_status = db.Column(db.String(30), nullable=False, default="active")
     college = db.Column(db.String(180))
     company = db.Column(db.String(180))
     avatar_url = db.Column(db.Text)

@@ -214,6 +214,8 @@ def login():
     user = User.query.filter_by(email=payload["email"].lower()).first()
     if not user or not user.check_password(payload["password"]):
         return jsonify({"message": "Invalid email or password"}), 401
+    if getattr(user, "account_status", "active") != "active":
+        return jsonify({"message": "This account is not active. Contact the STUDENOVA admin team."}), 403
     token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
     return jsonify({"access_token": token, "user": user_schema.dump(user)})
 
