@@ -1,4 +1,4 @@
-const API_BASE_URL = window.STUDENOVA_ADMIN_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = window.STUDENOVA_ADMIN_API_URL || 'http://localhost:5100/api';
 const tokenKey = 'studenova_admin_token';
 const userKey = 'studenova_admin_user';
 

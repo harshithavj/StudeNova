@@ -44,6 +44,7 @@ def create_app(config_class=Config):
 
             db.create_all()
             sync_sqlite_schema(app)
+            backfill_sqlite_defaults(app)
 
     @app.get("/api/health")
     def health():
@@ -127,3 +128,20 @@ def sync_sqlite_schema(app):
                 compiled_column = compiled_column.replace(" NOT NULL", "")
                 app.logger.info("Adding missing SQLite column %s.%s", table.name, column.name)
                 connection.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN {compiled_column}'))
+
+
+def backfill_sqlite_defaults(app):
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(db.engine)
+    columns_by_table = {
+        table_name: {column["name"] for column in inspector.get_columns(table_name)}
+        for table_name in inspector.get_table_names()
+    }
+    with db.engine.begin() as connection:
+        if "account_status" in columns_by_table.get("users", set()):
+            result = connection.execute(
+                text("UPDATE users SET account_status = 'active' WHERE account_status IS NULL OR account_status = ''")
+            )
+            if result.rowcount:
+                app.logger.info("Backfilled %s user account status value(s)", result.rowcount)

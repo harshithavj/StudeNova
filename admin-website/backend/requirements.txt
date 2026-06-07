@@ -1,0 +1,1 @@
+-r ../../studenova-website/backend/requirements.txt

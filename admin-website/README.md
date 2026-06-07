@@ -4,12 +4,14 @@ This is a separate admin website for managing the main STUDENOVA app.
 
 ## Run locally
 
-Start the backend first:
+Start the admin backend first:
 
 ```powershell
-cd "c:\Users\j\OneDrive\Documents\StudeNova 2\studenova-website\backend"
-python run.py
+cd "c:\Users\j\OneDrive\Documents\StudeNova 2\admin-website\backend"
+..\..\studenova-website\backend\.venv\Scripts\python.exe run.py
 ```
+
+The admin API runs on `http://localhost:5100/api`.
 
 Serve this admin website on port `5174`:
 
@@ -26,13 +28,13 @@ http://localhost:5174
 
 The backend allows this origin through `ADMIN_FRONTEND_ORIGIN`, which defaults to `http://localhost:5174`.
 
-The admin website talks to the shared StudeNova backend at:
+The admin website talks to its own admin backend at:
 
 ```text
-http://localhost:5000/api/admin
+http://localhost:5100/api/admin
 ```
 
-These admin-only endpoints manage organizer approvals, notifications, user account status, event status, activity monitoring, top events, analytics, achievements, audit logs, and settings.
+This admin backend reuses the StudeNova database and backend models, so admin-only endpoints manage organizer approvals, notifications, user account status, event status, activity monitoring, top events, analytics, achievements, audit logs, and settings for the main website.
 
 ## Login
 

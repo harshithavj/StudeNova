@@ -65,7 +65,7 @@ python run.py
 
 The API runs on `http://localhost:5000/api`.
 
-Admin management routes run under `http://localhost:5000/api/admin` and are consumed by the separate `admin-website` folder.
+The separate admin backend runs from `admin-website/backend` on `http://localhost:5100/api` and reuses this backend's app, database models, and admin routes.
 
 ## Connect Supabase
 
