@@ -53,25 +53,30 @@ The platform consists of four major modules:
 
 ```text
 STUDENOVA/
-│
-├── admin-website/
-│
-├── studenova-website/
-│   ├── backend/
-│   │   ├── app/
-│   │   ├── instance/
-│   │   ├── requirements.txt
-│   │   └── run.py
-│   │
-│   ├── frontend/
-│   │
-│   ├── supabase/
-│   │
-│   └── docs/
-│
-├── .gitignore
-├── LICENSE
-└── README.md
+|
+|-- admin-website/
+|   |-- backend/
+|   |   |-- requirements.txt
+|   |   `-- run.py
+|   `-- frontend/
+|       |-- index.html
+|       |-- app.js
+|       `-- styles.css
+|
+|-- studenova-website/
+|   |-- backend/
+|   |   |-- app/
+|   |   |-- instance/
+|   |   |-- requirements.txt
+|   |   `-- run.py
+|   |
+|   |-- frontend/
+|   |-- supabase/
+|   `-- docs/
+|
+|-- .gitignore
+|-- LICENSE
+`-- README.md
 ```
 
 ---

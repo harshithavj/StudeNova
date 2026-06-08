@@ -2,6 +2,19 @@
 
 This is a separate admin website for managing the main STUDENOVA app.
 
+## Structure
+
+```text
+admin-website/
+  backend/
+    run.py
+    requirements.txt
+  frontend/
+    index.html
+    app.js
+    styles.css
+```
+
 ## Run locally
 
 Start the admin backend first:
@@ -17,7 +30,7 @@ Serve this admin website on port `5174`:
 
 ```powershell
 cd "c:\Users\j\OneDrive\Documents\StudeNova 2"
-python -m http.server 5174 -d admin-website
+python -m http.server 5174 -d admin-website\frontend
 ```
 
 Open:
