@@ -48,6 +48,15 @@ const labels = {
 };
 
 const studyYears = ['1', '2', '3', '4'];
+const popularClubs = ['IEEE', 'ACM', 'CSI', 'IETE', 'Robotics Club', 'Coding Club'];
+const clubDetailFields = [
+  ['facultyHeadName', 'Faculty Head Name'],
+  ['facultyHeadPhone', 'Faculty Head Phone Number'],
+  ['studentHeadName', 'Student Head Name'],
+  ['studentHeadPhone', 'Student Head Phone Number'],
+  ['committeeMemberName', 'Organizing Committee Member Name'],
+  ['committeeMemberPhone', 'Organizing Committee Member Phone Number']
+];
 const maxVerificationFileSize = 3 * 1024 * 1024;
 const acceptedVerificationTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const acceptedVerificationExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.webp'];
@@ -138,6 +147,7 @@ export default function Signup() {
   const steps = isStudent ? ['Profile details', 'Email OTP confirmation'] : ['Profile details', 'Verification assets', 'OTP confirmation'];
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({});
+  const [clubDetailsOpen, setClubDetailsOpen] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const { signup, loading } = useAuth();
   const navigate = useNavigate();
@@ -147,8 +157,24 @@ export default function Signup() {
     return (passedChecks / passwordChecks.length) * 100;
   }, [form.password]);
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const updateClubDetail = (key, value) => {
+    setForm((current) => ({
+      ...current,
+      clubDetailsForm: {
+        ...(current.clubDetailsForm || {}),
+        [key]: value
+      }
+    }));
+  };
   const isBusy = loading || otpLoading;
   const currentVerificationAssets = verificationAssets[roleType] || verificationAssets['industry-organizer'];
+  const clubDetails = form.clubDetailsForm || {};
+  const customClubRequired = clubDetails.clubName === 'Other';
+  const resolvedClubName = customClubRequired ? clubDetails.customClubName : clubDetails.clubName;
+  const hasClubDetails = Boolean(
+    resolvedClubName
+    && clubDetailFields.every(([key]) => clubDetails[key])
+  );
 
   const handleVerificationFileChange = (key, event) => {
     const file = event.target.files?.[0];
@@ -208,6 +234,11 @@ export default function Signup() {
       return;
     }
     if (!isStudent && step < 3) {
+      if (config.role === 'college_admin' && step === 2 && !hasClubDetails) {
+        toast.error('Complete Club Details before continuing.');
+        setClubDetailsOpen(true);
+        return;
+      }
       setStep((current) => current + 1);
       return;
     }
@@ -228,8 +259,19 @@ export default function Signup() {
           if (value) multipartPayload.append(key, value);
         });
         currentVerificationAssets.forEach((asset) => {
-          if (form[asset.key]) multipartPayload.append(asset.key, form[asset.key]);
+          if (asset.key !== 'clubDetails' && form[asset.key]) multipartPayload.append(asset.key, form[asset.key]);
         });
+        if (config.role === 'college_admin') {
+          multipartPayload.append('clubDetailsForm', JSON.stringify({
+            clubName: resolvedClubName,
+            facultyHeadName: clubDetails.facultyHeadName,
+            facultyHeadPhone: clubDetails.facultyHeadPhone,
+            studentHeadName: clubDetails.studentHeadName,
+            studentHeadPhone: clubDetails.studentHeadPhone,
+            committeeMemberName: clubDetails.committeeMemberName,
+            committeeMemberPhone: clubDetails.committeeMemberPhone
+          }));
+        }
         await signup(multipartPayload);
       } else {
         await signup(signupPayload);
@@ -305,17 +347,34 @@ export default function Signup() {
           )}
           {!isStudent && step === 2 && (
             currentVerificationAssets.map((asset) => (
-              <label key={asset.key} className="rounded-lg bg-white p-4 text-sm font-bold text-nova-muted ring-1 ring-slate-200">
-                {asset.label}
-                <span className="mt-1 block text-xs font-semibold leading-5 text-slate-500">{asset.hint}<br></br> Max file size: 3MB.</span>
-                <input
-                  type="file"
-                  required
-                  accept="application/pdf,image/jpeg,image/png,image/webp"
-                  className="mt-3 block w-full text-sm"
-                  onChange={(event) => handleVerificationFileChange(asset.key, event)}
-                />
-              </label>
+              asset.key === 'clubDetails' && config.role === 'college_admin' ? (
+                <button
+                  key={asset.key}
+                  type="button"
+                  onClick={() => setClubDetailsOpen(true)}
+                  className="rounded-lg bg-white p-4 text-left text-sm font-bold text-nova-muted ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:ring-nova-coral"
+                >
+                  <span className="block">{asset.label}</span>
+                  <span className="mt-1 block text-xs font-semibold leading-5 text-slate-500">
+                    {hasClubDetails ? `${resolvedClubName} details ready for admin approval.` : 'Open the side form and enter club heads and committee contact details.'}
+                  </span>
+                  <span className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs ${hasClubDetails ? 'bg-emerald-50 text-emerald-700' : 'bg-nova-peach text-nova-coral'}`}>
+                    {hasClubDetails ? 'Completed' : 'Open form'}
+                  </span>
+                </button>
+              ) : (
+                <label key={asset.key} className="rounded-lg bg-white p-4 text-sm font-bold text-nova-muted ring-1 ring-slate-200">
+                  {asset.label}
+                  <span className="mt-1 block text-xs font-semibold leading-5 text-slate-500">{asset.hint}<br></br> Max file size: 3MB.</span>
+                  <input
+                    type="file"
+                    required
+                    accept="application/pdf,image/jpeg,image/png,image/webp"
+                    className="mt-3 block w-full text-sm"
+                    onChange={(event) => handleVerificationFileChange(asset.key, event)}
+                  />
+                </label>
+              )
             ))
           )}
           {((isStudent && step === 2) || (!isStudent && step === 3)) && (
@@ -328,6 +387,61 @@ export default function Signup() {
           <Button disabled={isBusy} className="md:col-span-2" variant="accent">{isBusy ? 'Please wait...' : step === steps.length ? 'Create account' : isStudent ? 'Send OTP' : 'Continue'}</Button>
         </form>
       </div>
+      {clubDetailsOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/35" role="dialog" aria-modal="true" aria-labelledby="club-details-title">
+          <div className="h-full w-full max-w-xl overflow-y-auto bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wider text-nova-coral">Verification asset</p>
+                <h2 id="club-details-title" className="mt-1 text-2xl font-black text-slate-900">Club Details</h2>
+              </div>
+              <button type="button" onClick={() => setClubDetailsOpen(false)} className="rounded-lg px-3 py-2 text-sm font-bold text-nova-muted ring-1 ring-slate-200">Close</button>
+            </div>
+            <div className="mt-6 grid gap-4">
+              <label className="grid gap-2 text-sm font-bold text-nova-muted">
+                Club Name
+                <select required value={clubDetails.clubName || ''} onChange={(event) => updateClubDetail('clubName', event.target.value)} className="rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200">
+                  <option value="">Select popular club</option>
+                  {popularClubs.map((club) => <option key={club} value={club}>{club}</option>)}
+                  <option value="Other">Other club not listed</option>
+                </select>
+              </label>
+              {customClubRequired && (
+                <label className="grid gap-2 text-sm font-bold text-nova-muted">
+                  Enter Club Name
+                  <textarea required rows={3} value={clubDetails.customClubName || ''} onChange={(event) => updateClubDetail('customClubName', event.target.value)} className="resize-none rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200" />
+                </label>
+              )}
+              {clubDetailFields.map(([key, label]) => (
+                <label key={key} className="grid gap-2 text-sm font-bold text-nova-muted">
+                  {label}
+                  <input
+                    required
+                    type={key.toLowerCase().includes('phone') ? 'tel' : 'text'}
+                    value={clubDetails[key] || ''}
+                    onChange={(event) => updateClubDetail(key, event.target.value)}
+                    className="rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200"
+                  />
+                </label>
+              ))}
+              <Button
+                type="button"
+                variant="accent"
+                onClick={() => {
+                  if (!hasClubDetails) {
+                    toast.error('Fill every club detail before submitting this form.');
+                    return;
+                  }
+                  setClubDetailsOpen(false);
+                  toast.success('Club details added for admin approval.');
+                }}
+              >
+                Submit Club Details
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
