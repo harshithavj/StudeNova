@@ -1,58 +1,8 @@
-2026-06-07 16:04:34,867 INFO werkzeug [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2026-06-13 16:42:18,224 INFO werkzeug [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5000
  * Running on http://10.120.141.48:5000
-2026-06-07 16:04:34,867 INFO werkzeug [33mPress CTRL+C to quit[0m
-2026-06-07 16:04:34,871 INFO werkzeug  * Restarting with stat
-2026-06-07 16:04:36,523 WARNING werkzeug  * Debugger is active!
-2026-06-07 16:04:36,530 INFO werkzeug  * Debugger PIN: 160-858-983
-2026-06-07 16:05:43,122 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:05:43] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-C:\Users\j\OneDrive\Documents\StudeNova 2\studenova-website\backend\.venv\Lib\site-packages\jwt\api_jwt.py:368: InsecureKeyLengthWarning: The HMAC key is 17 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
-  decoded = self.decode_complete(
-2026-06-07 16:05:43,426 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:05:43] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:05:47,379 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:05:47] "[33mGET / HTTP/1.1[0m" 404 -
-2026-06-07 16:05:47,434 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:05:47] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2026-06-07 16:05:52,815 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:05:52] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:05:53,131 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:05:53] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:06:02,827 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:02] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:06:03,145 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:03] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:06:12,822 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:12] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:06:13,143 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:13] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:06:22,210 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:22] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:06:22,527 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:22] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:06:32,817 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:32] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:06:33,135 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:33] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:06:38,479 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:38] "OPTIONS /api/auth/login HTTP/1.1" 200 -
-C:\Users\j\OneDrive\Documents\StudeNova 2\studenova-website\backend\.venv\Lib\site-packages\jwt\api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 17 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
-  return self._jws.encode(
-2026-06-07 16:06:40,245 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:40] "POST /api/auth/login HTTP/1.1" 200 -
-2026-06-07 16:06:42,818 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:42] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:06:43,128 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:43] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:06:52,822 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:52] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:06:53,136 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:06:53] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:07:02,821 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:02] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:07:03,146 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:03] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:07:12,828 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:12] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:07:13,157 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:13] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:07:22,815 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:22] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:07:23,131 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:23] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:07:32,823 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:32] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:07:33,144 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:33] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:07:42,822 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:42] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:07:43,138 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:43] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:07:52,816 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:52] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:07:53,132 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:07:53] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:08:36,819 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:08:36] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:08:37,137 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:08:37] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:09:36,817 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:09:36] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:09:37,130 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:09:37] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:10:36,811 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:10:36] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:10:37,134 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:10:37] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:11:36,816 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:11:36] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:11:37,141 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:11:37] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:12:37,012 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:12:37] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:12:37,368 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:12:37] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:13:36,818 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:13:36] "OPTIONS /api/admin/activity HTTP/1.1" 200 -
-2026-06-07 16:13:37,134 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:13:37] "[31m[1mGET /api/admin/activity HTTP/1.1[0m" 401 -
-2026-06-07 16:13:45,143 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:13:45] "OPTIONS /api/auth/verify-otp HTTP/1.1" 200 -
-2026-06-07 16:13:45,472 INFO werkzeug 127.0.0.1 - - [07/Jun/2026 16:13:45] "[31m[1mPOST /api/auth/verify-otp HTTP/1.1[0m" 400 -
+2026-06-13 16:42:18,234 INFO werkzeug [33mPress CTRL+C to quit[0m
+2026-06-13 16:42:18,234 INFO werkzeug  * Restarting with stat
+2026-06-13 16:42:19,597 WARNING werkzeug  * Debugger is active!
+2026-06-13 16:42:19,601 INFO werkzeug  * Debugger PIN: 106-521-113

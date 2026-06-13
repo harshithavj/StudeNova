@@ -175,6 +175,7 @@ export default function Signup() {
     resolvedClubName
     && clubDetailFields.every(([key]) => clubDetails[key])
   );
+  const accountEmail = form.email || form.officialEmail || form.workEmail;
 
   const handleVerificationFileChange = (key, event) => {
     const file = event.target.files?.[0];
@@ -206,7 +207,7 @@ export default function Signup() {
   const sendEmailOtp = async () => {
     setOtpLoading(true);
     try {
-      await api.post('/auth/send-otp', { email: form.email });
+      await api.post('/auth/send-otp', { email: accountEmail });
       toast.success('OTP sent to your email');
     } finally {
       setOtpLoading(false);
@@ -216,7 +217,7 @@ export default function Signup() {
   const verifyOtp = async () => {
     setOtpLoading(true);
     try {
-      await api.post('/auth/verify-otp', { email: form.email || form.officialEmail || form.workEmail, otp: form.otp });
+      await api.post('/auth/verify-otp', { email: accountEmail, otp: form.otp });
     } finally {
       setOtpLoading(false);
     }
@@ -238,6 +239,14 @@ export default function Signup() {
         toast.error('Complete Club Details before continuing.');
         setClubDetailsOpen(true);
         return;
+      }
+      if (step === 2) {
+        try {
+          await sendEmailOtp();
+        } catch (error) {
+          toast.error(error.response?.data?.message || 'Unable to send OTP');
+          return;
+        }
       }
       setStep((current) => current + 1);
       return;
@@ -380,11 +389,16 @@ export default function Signup() {
           {((isStudent && step === 2) || (!isStudent && step === 3)) && (
             <div className="md:col-span-2">
               <label className="text-sm font-bold text-nova-muted">{isStudent ? 'Email OTP' : 'OTP verification'}</label>
-              <input required placeholder="Enter 6-digit OTP" value={form.otp || ''} onChange={(e) => update('otp', e.target.value)} className="mt-2 w-full rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200" />
-              <p className="mt-3 text-sm text-nova-muted">{isStudent ? `Enter the OTP sent to ${form.email}.` : 'Supabase email verification and session persistence are wired through the auth service layer for production credentials.'}</p>
+              <input required inputMode="numeric" maxLength={6} placeholder="Enter 6-digit OTP" value={form.otp || ''} onChange={(e) => update('otp', e.target.value)} className="mt-2 w-full rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200" />
+              <div className="mt-3 flex flex-col gap-3 text-sm text-nova-muted sm:flex-row sm:items-center sm:justify-between">
+                <p>Enter the OTP sent to {accountEmail}.</p>
+                <button type="button" disabled={isBusy} onClick={sendEmailOtp} className="text-left font-bold text-nova-coral disabled:cursor-not-allowed disabled:opacity-60">
+                  Resend OTP
+                </button>
+              </div>
             </div>
           )}
-          <Button disabled={isBusy} className="md:col-span-2" variant="accent">{isBusy ? 'Please wait...' : step === steps.length ? 'Create account' : isStudent ? 'Send OTP' : 'Continue'}</Button>
+          <Button disabled={isBusy} className="md:col-span-2" variant="accent">{isBusy ? 'Please wait...' : step === steps.length ? 'Create account' : (isStudent || step === 2) ? 'Send OTP' : 'Continue'}</Button>
         </form>
       </div>
       {clubDetailsOpen && (
