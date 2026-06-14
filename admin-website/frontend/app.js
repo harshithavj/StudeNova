@@ -145,6 +145,14 @@ function showLogin() {
   }
 }
 
+function updateOtpButtonLabel() {
+  if (otpSent) {
+    otpButton.textContent = 'Resend OTP';
+    return;
+  }
+  otpButton.textContent = 'Send OTP to Email';
+}
+
 function setAuthMode(mode) {
   authMode = mode;
   otpSent = false;
@@ -160,6 +168,7 @@ function setAuthMode(mode) {
   confirmPasswordField.classList.toggle('hidden', !isSignup);
   otpField.classList.toggle('hidden', !isSignup);
   otpButton.classList.toggle('hidden', !isSignup);
+  updateOtpButtonLabel();
   loginButton.textContent = isSignup ? 'Create Admin Account' : 'Login to Admin Dashboard';
   toggleModeButton.textContent = isSignup ? 'Already have an admin account? Login' : 'Create admin account';
   document.querySelector('#passwordInput').autocomplete = isSignup ? 'new-password' : 'current-password';
@@ -583,12 +592,13 @@ otpButton.addEventListener('click', async () => {
       body: JSON.stringify({ email })
     });
     otpSent = true;
+    updateOtpButtonLabel();
     setMessage('OTP sent to your email. Enter it below to complete signup.', false);
   } catch (error) {
     setMessage(error.message);
   } finally {
     otpButton.disabled = false;
-    otpButton.textContent = 'Send OTP to Email';
+    updateOtpButtonLabel();
   }
 });
 
