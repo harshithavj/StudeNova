@@ -593,7 +593,7 @@ otpButton.addEventListener('click', async () => {
     });
     otpSent = true;
     updateOtpButtonLabel();
-    setMessage('OTP sent to your email. Enter it below to complete signup.', false);
+    setMessage('OTP sent to your email. It may take a few minutes to arrive, and it expires in 15 minutes.', false);
   } catch (error) {
     setMessage(error.message);
   } finally {

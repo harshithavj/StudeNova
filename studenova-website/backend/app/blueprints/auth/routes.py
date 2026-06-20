@@ -15,7 +15,7 @@ from ...utils.auth import current_user
 
 auth_bp = Blueprint("auth", __name__)
 otp_store = {}
-OTP_TTL_SECONDS = 300
+OTP_TTL_SECONDS = 900  # 15 minutes to account for email delivery delays
 MAX_VERIFICATION_FILE_SIZE = 3 * 1024 * 1024
 ALLOWED_VERIFICATION_CONTENT_TYPES = {"application/pdf", "image/jpeg", "image/png", "image/webp"}
 ALLOWED_VERIFICATION_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp"}
@@ -104,9 +104,10 @@ def send_email_otp(email, otp):
     message["Subject"] = "Your STUDENOVA OTP"
     message["From"] = mail_from
     message["To"] = email
-    message.set_content(f"Your STUDENOVA OTP is {otp}. It expires in 5 minutes.")
+    message.set_content(f"Your STUDENOVA OTP is {otp}. It expires in 15 minutes.")
 
     try:
+        current_app.logger.info("Sending OTP to %s with expiry %s seconds", email, OTP_TTL_SECONDS)
         with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as smtp:
             if current_app.config.get("SMTP_USE_TLS"):
                 smtp.starttls()

@@ -1,0 +1,11 @@
+{
+  "name": "admin-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "live-server --host=localhost --port=5174 --watch=."
+  },
+  "devDependencies": {
+    "live-server": "^1.2.1"
+  }
+}
