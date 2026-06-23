@@ -294,7 +294,7 @@ export default function Signup() {
   return (
     <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <Breadcrumbs />
-      <BackButton />
+      <BackButton fallback="/auth/select-role" />
       <div className="mt-8 grid gap-8 lg:grid-cols-[.8fr_1.2fr]">
         <div>
           <p className="text-sm font-bold uppercase tracking-wider text-nova-coral">Step {step} of {steps.length}</p>
@@ -357,20 +357,22 @@ export default function Signup() {
           {!isStudent && step === 2 && (
             currentVerificationAssets.map((asset) => (
               asset.key === 'clubDetails' && config.role === 'college_admin' ? (
-                <button
+                <div
                   key={asset.key}
-                  type="button"
-                  onClick={() => setClubDetailsOpen(true)}
-                  className="rounded-lg bg-white p-4 text-left text-sm font-bold text-nova-muted ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:ring-nova-coral"
+                  className="rounded-lg bg-white p-4 text-left text-sm font-bold text-nova-muted ring-1 ring-slate-200"
                 >
-                  <span className="block">{asset.label}</span>
+                  <span className="block text-base font-black text-nova-ink">{asset.label}</span>
                   <span className="mt-1 block text-xs font-semibold leading-5 text-slate-500">
                     {hasClubDetails ? `${resolvedClubName} details ready for admin approval.` : 'Open the side form and enter club heads and committee contact details.'}
                   </span>
-                  <span className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs ${hasClubDetails ? 'bg-emerald-50 text-emerald-700' : 'bg-nova-peach text-nova-coral'}`}>
-                    {hasClubDetails ? 'Completed' : 'Open form'}
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setClubDetailsOpen(true)}
+                    className="mt-4 inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    {hasClubDetails ? 'Edit form' : 'Open form'}
+                  </button>
+                </div>
               ) : (
                 <label key={asset.key} className="rounded-lg bg-white p-4 text-sm font-bold text-nova-muted ring-1 ring-slate-200">
                   {asset.label}

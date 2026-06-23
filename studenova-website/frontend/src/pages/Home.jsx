@@ -109,7 +109,7 @@ export default function Home() {
           <h2 className="text-2xl font-black">Upcoming deadlines</h2>
           <div className="mt-5 grid gap-3 md:grid-cols-3">
             {sampleEvents.slice(0, 3).map((event) => (
-              <Link to={`/events/${event.id}`} key={event.id} className="rounded-lg bg-white p-4 ring-1 ring-slate-200 transition hover:-translate-y-0.5">
+              <Link to={`/events/${event.id}`} key={event.id} state={{ from: '/' }} className="rounded-lg bg-white p-4 ring-1 ring-slate-200 transition hover:-translate-y-0.5">
                 <p className="font-bold">{event.title}</p>
                 <p className="mt-2 text-sm text-nova-coral">{daysUntil(event.deadline)} days until registration closes</p>
               </Link>

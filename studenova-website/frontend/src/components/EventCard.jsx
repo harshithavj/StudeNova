@@ -1,11 +1,14 @@
 import { Bookmark, CalendarClock, Eye, Tags, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { daysUntil, formatDate } from '../utils/date';
 import Button from './ui/Button';
 
 export default function EventCard({ event }) {
+  const location = useLocation();
+  const linkState = { from: `${location.pathname}${location.search}` };
+
   const saveEvent = () => {
     const stored = JSON.parse(localStorage.getItem('studenova_saved_events') || '[]');
     if (!stored.some((item) => item.id === event.id)) {
@@ -21,7 +24,7 @@ export default function EventCard({ event }) {
 
   return (
     <motion.article whileHover={{ y: -5 }} className="surface overflow-hidden rounded-lg transition">
-      <Link to={`/events/${event.id}`} className="block">
+      <Link to={`/events/${event.id}`} state={linkState} className="block">
         <img src={event.image_url} alt={event.title} className="h-48 w-full object-cover" />
       </Link>
       <div className="space-y-4 p-5">
@@ -45,7 +48,7 @@ export default function EventCard({ event }) {
         </div>
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm font-bold text-nova-coral">{event.registration_status || `${daysUntil(event.deadline)} days left`}</span>
-          <Button as={Link} to={`/events/${event.id}`} size="sm" variant="secondary"><Eye size={16} />View Details</Button>
+          <Button as={Link} to={`/events/${event.id}`} state={linkState} size="sm" variant="secondary"><Eye size={16} />View Details</Button>
         </div>
         <Button onClick={openRegistration} size="sm" variant="accent" disabled={event.registration_status === 'Closed'}>Register</Button>
       </div>

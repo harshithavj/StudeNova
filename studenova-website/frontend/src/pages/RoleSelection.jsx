@@ -1,5 +1,5 @@
 import { Building2, GraduationCap, Landmark, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import Breadcrumbs from '../components/Breadcrumbs';
 
@@ -28,6 +28,9 @@ const roles = [
 ];
 
 export default function RoleSelection() {
+  const location = useLocation();
+  const linkState = { from: location.pathname };
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <Breadcrumbs />
@@ -39,7 +42,7 @@ export default function RoleSelection() {
       </div>
       <div className="mt-8 grid gap-5 lg:grid-cols-3">
         {roles.map(({ title, to, icon: Icon, description, features }) => (
-          <Link key={title} to={to} className="surface group rounded-lg p-6 transition hover:-translate-y-1 hover:border-nova-coral">
+          <Link key={title} to={to} state={linkState} className="surface group rounded-lg p-6 transition hover:-translate-y-1 hover:border-nova-coral">
             <div className="grid h-14 w-14 place-items-center rounded-lg bg-nova-peach text-nova-coral">
               <Icon size={28} />
             </div>

@@ -29,7 +29,7 @@ function EventRow({ event, registrationStatus, eventStatus }) {
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-nova-muted">
         <span className="flex items-center gap-2"><Clock3 size={16} />Deadline: {formatDate(event.deadline)}</span>
-        <Button as={Link} to={`/events/${event.id}`} size="sm" variant="secondary">Quick Access</Button>
+        <Button as={Link} to={`/events/${event.id}`} state={{ from: '/student/my-events' }} size="sm" variant="secondary">Quick Access</Button>
       </div>
     </article>
   );
