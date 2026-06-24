@@ -60,6 +60,11 @@ const clubDetailFields = [
 const maxVerificationFileSize = 3 * 1024 * 1024;
 const acceptedVerificationTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const acceptedVerificationExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.webp'];
+const indianPhonePattern = /^(?:\+91|91)?[6-9]\d{9}$/;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const isEmailValid = (email) => typeof email === 'string' && emailPattern.test(email.trim());
+const isIndianPhoneNumber = (value) => typeof value === 'string' && indianPhonePattern.test(value.replace(/\s+/g, ''));
 
 const verificationAssets = {
   'college-organizer': [
@@ -205,10 +210,18 @@ export default function Signup() {
   };
 
   const sendEmailOtp = async () => {
+    if (!accountEmail || !isEmailValid(accountEmail)) {
+      toast.error('Enter a valid email address before requesting OTP.');
+      return false;
+    }
     setOtpLoading(true);
     try {
       await api.post('/auth/send-otp', { email: accountEmail });
       toast.success('OTP sent to your email');
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Unable to send OTP');
+      return false;
     } finally {
       setOtpLoading(false);
     }
@@ -218,33 +231,58 @@ export default function Signup() {
     setOtpLoading(true);
     try {
       await api.post('/auth/verify-otp', { email: accountEmail, otp: form.otp });
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Unable to verify OTP');
+      return false;
     } finally {
       setOtpLoading(false);
     }
   };
 
+  const validateClubDetails = () => {
+    if (!hasClubDetails) {
+      toast.error('Fill every club detail before submitting this form.');
+      return false;
+    }
+
+    const invalidPhoneFields = clubDetailFields
+      .filter(([key]) => key.toLowerCase().includes('phone'))
+      .filter(([key]) => !isIndianPhoneNumber(clubDetails[key] || ''))
+      .map(([, label]) => label);
+
+    if (invalidPhoneFields.length) {
+      toast.error(`Enter valid Indian phone numbers for: ${invalidPhoneFields.join(', ')}.`);
+      return false;
+    }
+
+    return true;
+  };
+
   const submit = async (event) => {
     event.preventDefault();
+    if (!accountEmail || !isEmailValid(accountEmail)) {
+      toast.error('Enter a valid email address before continuing.');
+      return;
+    }
+
     if (isStudent && step === 1) {
-      try {
-        await sendEmailOtp();
+      const sent = await sendEmailOtp();
+      if (sent) {
         setStep(2);
-      } catch (error) {
-        toast.error(error.response?.data?.message || 'Unable to send OTP');
       }
       return;
     }
     if (!isStudent && step < 3) {
-      if (config.role === 'college_admin' && step === 2 && !hasClubDetails) {
-        toast.error('Complete Club Details before continuing.');
-        setClubDetailsOpen(true);
-        return;
+      if (config.role === 'college_admin' && step === 2) {
+        if (!validateClubDetails()) {
+          setClubDetailsOpen(true);
+          return;
+        }
       }
       if (step === 2) {
-        try {
-          await sendEmailOtp();
-        } catch (error) {
-          toast.error(error.response?.data?.message || 'Unable to send OTP');
+        const sent = await sendEmailOtp();
+        if (!sent) {
           return;
         }
       }
@@ -294,7 +332,16 @@ export default function Signup() {
   return (
     <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <Breadcrumbs />
-      <BackButton fallback="/auth/select-role" />
+      <BackButton
+        fallback="/auth/select-role"
+        onBack={() => {
+          if (step > 1) {
+            setStep((current) => current - 1);
+          } else {
+            navigate('/auth/select-role');
+          }
+        }}
+      />
       <div className="mt-8 grid gap-8 lg:grid-cols-[.8fr_1.2fr]">
         <div>
           <p className="text-sm font-bold uppercase tracking-wider text-nova-coral">Step {step} of {steps.length}</p>
@@ -428,24 +475,41 @@ export default function Signup() {
                   <textarea required rows={3} value={clubDetails.customClubName || ''} onChange={(event) => updateClubDetail('customClubName', event.target.value)} className="resize-none rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200" />
                 </label>
               )}
-              {clubDetailFields.map(([key, label]) => (
-                <label key={key} className="grid gap-2 text-sm font-bold text-nova-muted">
-                  {label}
-                  <input
-                    required
-                    type={key.toLowerCase().includes('phone') ? 'tel' : 'text'}
-                    value={clubDetails[key] || ''}
-                    onChange={(event) => updateClubDetail(key, event.target.value)}
-                    className="rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200"
-                  />
-                </label>
-              ))}
+              {clubDetailFields.map(([key, label]) => {
+                const isPhone = key.toLowerCase().includes('phone');
+                return (
+                  <label key={key} className="grid gap-2 text-sm font-bold text-nova-muted">
+                    {label}
+                    {isPhone ? (
+                      <div className="flex items-center gap-2 rounded-lg bg-white px-3 ring-1 ring-slate-200">
+                        <span className="text-sm font-semibold text-slate-600">+91</span>
+                        <input
+                          required
+                          type="tel"
+                          pattern="[6-9][0-9]{9}"
+                          title="Enter a 10-digit Indian phone number without the country code."
+                          value={clubDetails[key] || ''}
+                          onChange={(event) => updateClubDetail(key, event.target.value)}
+                          className="min-w-0 flex-1 border-none bg-transparent px-0 py-3 outline-none"
+                        />
+                      </div>
+                    ) : (
+                      <input
+                        required
+                        type="text"
+                        value={clubDetails[key] || ''}
+                        onChange={(event) => updateClubDetail(key, event.target.value)}
+                        className="rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200"
+                      />
+                    )}
+                  </label>
+                );
+              })}
               <Button
                 type="button"
                 variant="accent"
                 onClick={() => {
-                  if (!hasClubDetails) {
-                    toast.error('Fill every club detail before submitting this form.');
+                  if (!validateClubDetails()) {
                     return;
                   }
                   setClubDetailsOpen(false);
