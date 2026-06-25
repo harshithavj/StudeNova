@@ -17,6 +17,7 @@ class User(db.Model):
     avatar_url = db.Column(db.Text)
     bio = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    last_login_at = db.Column(db.DateTime, nullable=True)
 
     events = db.relationship("Event", back_populates="creator", cascade="all,delete")
     registrations = db.relationship("Registration", back_populates="user", cascade="all,delete")

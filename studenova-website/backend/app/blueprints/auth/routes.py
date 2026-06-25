@@ -1,6 +1,7 @@
 import random
 import smtplib
 import time
+from datetime import datetime
 from email.message import EmailMessage
 
 from flask import Blueprint, current_app, jsonify, request
@@ -217,6 +218,8 @@ def login():
         return jsonify({"message": "Invalid email or password"}), 401
     if (user.account_status or "active") != "active":
         return jsonify({"message": "This account is not active. Contact the STUDENOVA admin team."}), 403
+    user.last_login_at = datetime.utcnow()
+    db.session.commit()
     token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
     return jsonify({"access_token": token, "user": user_schema.dump(user)})
 
@@ -225,6 +228,17 @@ def login():
 @jwt_required(optional=True)
 def logout():
     return jsonify({"message": "Session cleared on client"})
+
+
+@auth_bp.delete("/account")
+@jwt_required()
+def delete_account():
+    user = current_user()
+    if not user:
+        return jsonify({"message": "Invalid user"}), 401
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": "Account deleted successfully"})
 
 
 @auth_bp.post("/send-otp")

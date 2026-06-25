@@ -195,6 +195,14 @@ def admin_activity():
             "detail": user.email,
             "occurred_at": serialize_datetime(user.created_at),
         })
+    for user in User.query.filter(User.last_login_at.isnot(None)).order_by(User.last_login_at.desc()).limit(8).all():
+        recent_activity.append({
+            "id": f"login-{user.id}-{int(user.last_login_at.timestamp())}",
+            "type": "Login",
+            "title": f"{user.name} logged in",
+            "detail": f"{user.email} ({user.role.replace('_', ' ')})",
+            "occurred_at": serialize_datetime(user.last_login_at),
+        })
     for event in Event.query.order_by(Event.created_at.desc()).limit(8).all():
         recent_activity.append({
             "id": f"event-{event.id}",

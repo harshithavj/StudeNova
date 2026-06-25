@@ -53,20 +53,37 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('studenova_token');
-    localStorage.removeItem('studenova_user');
-    setUser(null);
-    toast.success('Signed out');
-  };
-
   const clearSession = () => {
     localStorage.removeItem('studenova_token');
     localStorage.removeItem('studenova_user');
+    localStorage.removeItem('studenova_student_events');
+    localStorage.removeItem('studenova_saved_events');
     setUser(null);
   };
 
-  const value = useMemo(() => ({ user, loading, login, signup, logout, clearSession, isAuthenticated: Boolean(user) }), [user, loading]);
+  const logout = () => {
+    clearSession();
+    toast.success('Signed out');
+  };
+
+  const deleteAccount = async () => {
+    setLoading(true);
+    try {
+      await api.delete('/auth/account');
+      clearSession();
+      toast.success('Your account has been deleted. Please register again.');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Unable to delete account');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const value = useMemo(
+    () => ({ user, loading, login, signup, logout, deleteAccount, clearSession, isAuthenticated: Boolean(user) }),
+    [user, loading]
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
