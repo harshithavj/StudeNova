@@ -482,6 +482,90 @@ function renderSettings(settings = {}) {
   `).join('');
 }
 
+function renderAdminProfile(user) {
+  const container = document.querySelector('#settingsList');
+  if (!container) return;
+  // remove previous profile if present
+  const existing = container.querySelector('.admin-profile');
+  if (existing) existing.remove();
+  if (!user) return;
+  const profileHtml = `
+    <article class="settings-card admin-profile">
+      <h3>Profile Settings</h3>
+      <form id="adminProfileForm" class="profile-form">
+        <label>
+          Name
+          <input id="profileName" type="text" value="${user.name || ''}" required />
+        </label>
+        <label>
+          Email
+          <input id="profileEmail" type="email" value="${user.email || ''}" required />
+        </label>
+        <p class="muted">Role: ${user.role || 'admin'}</p>
+        <p class="muted">Last login: ${formatDate(user.last_login_at)}</p>
+        <div class="row-actions">
+          <button class="dark-button" type="submit" id="saveProfileBtn">Save</button>
+          <button class="small-button" type="button" id="changePasswordBtn">Change Password</button>
+          <button class="small-button reject-button" type="button" id="profileLogoutBtn">Sign Out</button>
+        </div>
+        <p id="profileMessage" class="form-message"></p>
+      </form>
+    </article>
+  `;
+
+  container.innerHTML = profileHtml; // replace settings with profile form
+
+  const profileForm = document.querySelector('#adminProfileForm');
+  const profileMessage = document.querySelector('#profileMessage');
+
+  profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    profileMessage.textContent = '';
+    const name = document.querySelector('#profileName').value.trim();
+    const email = document.querySelector('#profileEmail').value.trim();
+    try {
+      const updated = await request('/auth/me', {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ name, email })
+      });
+      localStorage.setItem(userKey, JSON.stringify(updated.user));
+      profileMessage.textContent = 'Profile updated successfully';
+    } catch (err) {
+      profileMessage.textContent = err.message || 'Unable to update profile';
+    }
+  });
+
+  const logoutBtn = document.querySelector('#profileLogoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem(tokenKey);
+      localStorage.removeItem(userKey);
+      showLogin();
+    });
+  }
+
+  const cpBtn = document.querySelector('#changePasswordBtn');
+  if (cpBtn) {
+    cpBtn.addEventListener('click', async () => {
+      const current = window.prompt('Enter your current password:');
+      if (!current) return;
+      const nw = window.prompt('Enter your new password (min 8 chars):');
+      if (!nw) return;
+      try {
+        await request('/auth/me/password', {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify({ current_password: current, new_password: nw })
+        });
+        profileMessage.textContent = 'Password changed successfully';
+      } catch (err) {
+        profileMessage.textContent = err.message || 'Unable to change password';
+      }
+    });
+  }
+}
+
 async function loadDashboard() {
   refreshButton.disabled = true;
   refreshButton.textContent = 'Loading...';
@@ -503,7 +587,17 @@ async function loadDashboard() {
     renderReportsQueue(data.reports_queue);
     renderAnalyticsSummary(data.analytics_summary);
     renderAuditLogs(data.audit_logs);
-    renderSettings(data.settings);
+    // render profile settings (fetch current user)
+    try {
+      const me = await request('/auth/me', { headers: authHeaders() });
+      renderAdminProfile(me.user);
+    } catch (err) {
+      // if fetching user fails, clear session and show login
+      localStorage.removeItem(tokenKey);
+      localStorage.removeItem(userKey);
+      showLogin();
+      return;
+    }
   } catch (error) {
     if (error.message.includes('permission') || error.message.includes('Missing')) {
       localStorage.removeItem(tokenKey);

@@ -314,3 +314,38 @@ def reset_password():
 @jwt_required()
 def me():
     return jsonify({"user": user_schema.dump(current_user())})
+
+
+@auth_bp.patch("/me")
+@jwt_required()
+def update_me():
+    payload = request.get_json() or {}
+    user = current_user()
+    if not user:
+        return jsonify({"message": "Invalid user"}), 401
+    name = payload.get("name")
+    email = payload.get("email")
+    if name:
+        user.name = name
+    if email and email.lower() != user.email:
+        if User.query.filter_by(email=email.lower()).first():
+            return jsonify({"message": "Email already in use"}), 409
+        user.email = email.lower()
+    db.session.commit()
+    return jsonify({"user": user_schema.dump(user)})
+
+
+@auth_bp.patch("/me/password")
+@jwt_required()
+def change_password():
+    payload = request.get_json() or {}
+    current = payload.get("current_password")
+    new = payload.get("new_password")
+    if not current or not new:
+        return jsonify({"message": "Both current and new passwords are required"}), 400
+    user = current_user()
+    if not user or not user.check_password(current):
+        return jsonify({"message": "Current password is incorrect"}), 403
+    user.set_password(new)
+    db.session.commit()
+    return jsonify({"message": "Password updated successfully"})
