@@ -24,6 +24,7 @@ class User(db.Model):
     bookmarks = db.relationship("Bookmark", back_populates="user", cascade="all,delete")
     notifications = db.relationship("Notification", back_populates="user", cascade="all,delete")
     verification_assets = db.relationship("OrganizerVerificationAsset", back_populates="user", cascade="all,delete")
+    login_history = db.relationship("LoginHistory", back_populates="user", cascade="all,delete")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

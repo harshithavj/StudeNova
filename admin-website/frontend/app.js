@@ -809,17 +809,11 @@ logoutButton.addEventListener('click', () => {
   showLogin();
 });
 
-if (localStorage.getItem(tokenKey)) {
-  if (!window.location.hash) {
-    window.location.hash = '#dashboard';
-  }
-  showDashboard();
-  loadDashboard();
-  liveActivityTimer = setInterval(loadDashboard, 10000);
-} else {
-  setAuthMode('login');
-  showLogin();
-}
+// Always require login when the admin website opens.
+localStorage.removeItem(tokenKey);
+localStorage.removeItem(userKey);
+setAuthMode('login');
+showLogin();
 
 window.addEventListener('beforeunload', () => {
   if (liveActivityTimer) clearInterval(liveActivityTimer);

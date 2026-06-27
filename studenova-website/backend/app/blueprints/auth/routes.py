@@ -9,7 +9,7 @@ from flask_jwt_extended import create_access_token, jwt_required
 from marshmallow import Schema, fields, validate
 from werkzeug.utils import secure_filename
 from ...extensions import db, limiter
-from ...models import OrganizerVerificationAsset, User
+from ...models import LoginHistory, OrganizerVerificationAsset, User
 from ...schemas import user_schema
 from ...services.storage import upload_organizer_verification
 from ...utils.auth import current_user
@@ -218,7 +218,9 @@ def login():
         return jsonify({"message": "Invalid email or password"}), 401
     if (user.account_status or "active") != "active":
         return jsonify({"message": "This account is not active. Contact the STUDENOVA admin team."}), 403
-    user.last_login_at = datetime.utcnow()
+    login_time = datetime.utcnow()
+    user.last_login_at = login_time
+    db.session.add(LoginHistory(user_id=user.id, occurred_at=login_time))
     db.session.commit()
     token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
     return jsonify({"access_token": token, "user": user_schema.dump(user)})

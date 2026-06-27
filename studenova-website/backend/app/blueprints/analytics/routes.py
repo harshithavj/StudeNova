@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from sqlalchemy import func
 from ...extensions import db
-from ...models import AnalyticsEvent, Bookmark, Event, Notification, OrganizerVerificationAsset, Registration, StudentAchievement, User
+from ...models import AnalyticsEvent, Bookmark, Event, LoginHistory, Notification, OrganizerVerificationAsset, Registration, StudentAchievement, User
 from ...services.recommendations import recommended_events_for
 from ...schemas import events_schema
 from ...utils.auth import current_user, roles_required
@@ -195,13 +195,13 @@ def admin_activity():
             "detail": user.email,
             "occurred_at": serialize_datetime(user.created_at),
         })
-    for user in User.query.filter(User.last_login_at.isnot(None)).order_by(User.last_login_at.desc()).limit(8).all():
+    for login in LoginHistory.query.order_by(LoginHistory.occurred_at.desc()).limit(24).all():
         recent_activity.append({
-            "id": f"login-{user.id}-{int(user.last_login_at.timestamp())}",
+            "id": f"login-{login.user_id}-{int(login.occurred_at.timestamp())}",
             "type": "Login",
-            "title": f"{user.name} logged in",
-            "detail": f"{user.email} ({user.role.replace('_', ' ')})",
-            "occurred_at": serialize_datetime(user.last_login_at),
+            "title": f"{login.user.name} logged in" if login.user else "User logged in",
+            "detail": f"{login.user.email} ({login.user.role.replace('_', ' ')})" if login.user else "Unknown user",
+            "occurred_at": serialize_datetime(login.occurred_at),
         })
     for event in Event.query.order_by(Event.created_at.desc()).limit(8).all():
         recent_activity.append({

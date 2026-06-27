@@ -4,6 +4,7 @@ from .event import Event, Tag, event_tags
 from .notification import Notification
 from .organizer import Organizer
 from .organizer_verification import OrganizerVerificationAsset
+from .login_history import LoginHistory
 from .registration import Registration
 from .student import EventDiscussionPost, StudentAchievement, StudentCommunity, StudentConnection, StudentEventReminder, StudentProfile
 from .user import User
@@ -22,6 +23,7 @@ __all__ = [
     "StudentConnection",
     "StudentEventReminder",
     "StudentProfile",
+    "LoginHistory",
     "Tag",
     "User",
     "event_tags",
