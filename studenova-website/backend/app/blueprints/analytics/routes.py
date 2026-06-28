@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
@@ -51,6 +52,7 @@ def serialize_verification_request(user):
                 "file_name": asset.file_name,
                 "file_url": asset.file_url,
                 "content_type": asset.content_type,
+                "details": json.loads(asset.details_json) if asset.details_json else None,
                 "status": asset.status,
                 "created_at": serialize_datetime(asset.created_at),
             }
@@ -80,7 +82,7 @@ def serialize_user_management(user):
         "account_status": user.account_status or "active",
         "college": user.college,
         "company": user.company,
-        "verification_status": organizer_verification_status(user) if user.role in ["college_admin", "industry_organizer"] else "not_required",
+        "verification_status": organizer_verification_status(user) if user.role in ["college_organizer", "industry_organizer"] else "not_required",
         "events_created": len(user.events),
         "participation_count": len(user.registrations),
         "achievements_count": StudentAchievement.query.filter_by(user_id=user.id).count(),
@@ -126,7 +128,7 @@ def build_event_monitoring():
 
 
 @analytics_bp.get("/overview")
-@roles_required("college_admin", "industry_organizer")
+@roles_required("college_organizer", "industry_organizer")
 def overview():
     user = current_user()
     registrations = (
@@ -146,7 +148,7 @@ def overview():
 @analytics_bp.get("/admin-activity")
 @roles_required("admin")
 def admin_activity():
-    college_organizers = User.query.filter_by(role="college_admin").all()
+    college_organizers = User.query.filter_by(role="college_organizer").all()
     industry_organizers = User.query.filter_by(role="industry_organizer").all()
     verification_users = [user for user in [*college_organizers, *industry_organizers] if user.verification_assets]
     verification_requests = [serialize_verification_request(user) for user in verification_users]
@@ -324,7 +326,7 @@ def admin_activity():
         "event_monitoring": build_event_monitoring(),
         "user_management": {
             "students": [serialize_user_management(user) for user in all_users if user.role == "student"],
-            "college_organizers": [serialize_user_management(user) for user in all_users if user.role == "college_admin"],
+            "college_organizers": [serialize_user_management(user) for user in all_users if user.role == "college_organizer"],
             "industry_organizers": [serialize_user_management(user) for user in all_users if user.role == "industry_organizer"],
         },
         "achievement_queue": achievement_queue,
@@ -367,7 +369,7 @@ def admin_activity():
 @roles_required("admin")
 def update_admin_verification(user_id):
     user = User.query.get_or_404(user_id)
-    if user.role not in ["college_admin", "industry_organizer"]:
+    if user.role not in ["college_organizer", "industry_organizer"]:
         return jsonify({"message": "Only organizer accounts can be verified"}), 400
 
     action = (request.get_json() or {}).get("action")
@@ -384,6 +386,17 @@ def update_admin_verification(user_id):
 
     for asset in user.verification_assets:
         asset.status = status_by_action[action]
+    if action == "approve":
+        user.verification_status = "approved"
+        user.rejection_reason = None
+    elif action == "reject":
+        user.verification_status = "rejected"
+        user.rejection_reason = (request.get_json() or {}).get("reason") or "Verification rejected by admin"
+    elif action == "request_more_information":
+        user.verification_status = "pending"
+    elif action == "suspend":
+        user.verification_status = "rejected"
+        user.rejection_reason = "Verification suspended by admin"
     db.session.commit()
     return jsonify({"message": "Verification updated", "request": serialize_verification_request(user)})
 
@@ -402,7 +415,7 @@ def send_admin_notification():
     if recipient_group == "students":
         query = query.filter_by(role="student")
     elif recipient_group == "college_organizers":
-        query = query.filter_by(role="college_admin")
+        query = query.filter_by(role="college_organizer")
     elif recipient_group == "industry_organizers":
         query = query.filter_by(role="industry_organizer")
     elif recipient_group != "all":
@@ -447,7 +460,7 @@ def recommendations():
 
 
 @analytics_bp.get("/event/<int:event_id>")
-@roles_required("college_admin", "industry_organizer")
+@roles_required("college_organizer", "industry_organizer")
 def event_metrics(event_id):
     event = Event.query.get_or_404(event_id)
     if event.creator_id != current_user().id:

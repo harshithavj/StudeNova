@@ -1,3 +1,4 @@
+import json
 import random
 import smtplib
 import time
@@ -22,7 +23,6 @@ ALLOWED_VERIFICATION_CONTENT_TYPES = {"application/pdf", "image/jpeg", "image/pn
 ALLOWED_VERIFICATION_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp"}
 COLLEGE_VERIFICATION_FILES = {
     "collegeIdProof": "college_id_proof",
-    "clubDetails": "club_details",
     "clubMembershipProof": "club_membership_proof",
 }
 INDUSTRY_VERIFICATION_FILES = {
@@ -35,9 +35,10 @@ class SignupSchema(Schema):
     name = fields.String(required=True, validate=validate.Length(min=2))
     email = fields.Email(required=True)
     password = fields.String(required=True, validate=validate.Length(min=8))
-    role = fields.String(required=True, validate=validate.OneOf(["student", "college_admin", "industry_organizer"]))
+    role = fields.String(required=True, validate=validate.OneOf(["student", "college_admin", "college_organizer", "industry_organizer"]))
     college = fields.String(load_default=None, allow_none=True)
     company = fields.String(load_default=None, allow_none=True)
+    clubDetailsForm = fields.String(load_default=None, allow_none=True)
 
 
 class LoginSchema(Schema):
@@ -92,6 +93,28 @@ def validate_college_organizer_files(files):
     return None
 
 
+def parse_club_details_form(raw_value):
+    if not raw_value:
+        return None, "Club details are required for college organizer verification."
+    try:
+        details = json.loads(raw_value)
+    except (TypeError, json.JSONDecodeError):
+        return None, "Club details must be valid JSON."
+    required_fields = [
+        "clubName",
+        "facultyHeadName",
+        "facultyHeadPhone",
+        "studentHeadName",
+        "studentHeadPhone",
+        "committeeMemberName",
+        "committeeMemberPhone",
+    ]
+    missing = [field for field in required_fields if not str(details.get(field) or "").strip()]
+    if missing:
+        return None, f"Missing club detail field(s): {', '.join(missing)}"
+    return details, None
+
+
 def send_email_otp(email, otp):
     smtp_host = current_app.config.get("SMTP_HOST")
     smtp_port = current_app.config.get("SMTP_PORT")
@@ -134,21 +157,32 @@ def signup():
         file_error = validate_college_organizer_files(request.files)
         if file_error:
             return jsonify({"message": file_error}), 400
+        club_details, club_details_error = parse_club_details_form(payload.get("clubDetailsForm"))
+        if club_details_error:
+            return jsonify({"message": club_details_error}), 400
+    else:
+        club_details = None
+
+    normalized_role = payload["role"]
+    if normalized_role == "college_admin":
+        normalized_role = "college_organizer"
 
     user = User(
         name=payload["name"],
         email=payload["email"].lower(),
-        role=payload["role"],
+        role=normalized_role,
         college=payload.get("college"),
         company=payload.get("company"),
+        verification_status="pending" if normalized_role in {"college_organizer", "industry_organizer"} else "approved",
+        rejection_reason=None,
     )
     user.set_password(payload["password"])
     db.session.add(user)
     db.session.flush()
 
-    if payload["role"] in ["college_admin", "industry_organizer"]:
+    if normalized_role in ["college_organizer", "industry_organizer"]:
         try:
-            verification_files = COLLEGE_VERIFICATION_FILES if payload["role"] == "college_admin" else INDUSTRY_VERIFICATION_FILES
+            verification_files = COLLEGE_VERIFICATION_FILES if normalized_role == "college_organizer" else INDUSTRY_VERIFICATION_FILES
             for field_name, asset_type in verification_files.items():
                 file = request.files.get(field_name)
                 if not file or not file.filename:
@@ -160,7 +194,7 @@ def signup():
                     db.session.rollback()
                     return jsonify({"message": "Add files less than 3MB"}), 400
                 filename = secure_filename(file.filename)
-                path = f"organizer-verifications/{user.id}/{asset_type}/{int(time.time())}-{filename}"
+                path = f"{user.id}/{asset_type}/{int(time.time())}-{filename}"
                 file_url = upload_organizer_verification(file, path)
                 db.session.add(OrganizerVerificationAsset(
                     user_id=user.id,
@@ -168,6 +202,15 @@ def signup():
                     file_url=file_url,
                     file_name=filename,
                     content_type=file.content_type,
+                ))
+            if normalized_role == "college_organizer" and club_details:
+                db.session.add(OrganizerVerificationAsset(
+                    user_id=user.id,
+                    asset_type="club_details",
+                    file_url="",
+                    file_name="Club Details Form",
+                    content_type="application/json",
+                    details_json=json.dumps(club_details),
                 ))
         except RuntimeError as error:
             db.session.rollback()
@@ -178,7 +221,7 @@ def signup():
             return jsonify({"message": "Unable to upload organizer verification files"}), 503
 
     db.session.commit()
-    token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
+    token = create_access_token(identity=str(user.id), additional_claims={"role": user.role, "verification_status": user.verification_status})
     return jsonify({"access_token": token, "user": user_schema.dump(user)}), 201
 
 
@@ -222,7 +265,7 @@ def login():
     user.last_login_at = login_time
     db.session.add(LoginHistory(user_id=user.id, occurred_at=login_time))
     db.session.commit()
-    token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
+    token = create_access_token(identity=str(user.id), additional_claims={"role": user.role, "verification_status": user.verification_status})
     return jsonify({"access_token": token, "user": user_schema.dump(user)})
 
 
@@ -230,6 +273,25 @@ def login():
 @jwt_required(optional=True)
 def logout():
     return jsonify({"message": "Session cleared on client"})
+
+
+@auth_bp.patch("/profile")
+@jwt_required()
+def update_profile():
+    user = current_user()
+    if not user:
+        return jsonify({"message": "Invalid user"}), 401
+    payload = request.get_json() or {}
+    if payload.get("name"):
+        user.name = payload["name"]
+    if payload.get("college") is not None:
+        user.college = payload["college"] or None
+    if payload.get("company") is not None:
+        user.company = payload["company"] or None
+    if payload.get("bio") is not None:
+        user.bio = payload["bio"] or None
+    db.session.commit()
+    return jsonify({"user": user_schema.dump(user)})
 
 
 @auth_bp.delete("/account")

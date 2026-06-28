@@ -8,7 +8,10 @@ create table if not exists users (
   email varchar(255) unique not null,
   phone varchar(40),
   password_hash varchar(255) not null,
-  role varchar(40) not null check (role in ('student', 'college_admin', 'industry_organizer')),
+  role varchar(40) not null check (role in ('student', 'college_admin', 'college_organizer', 'industry_organizer', 'admin')),
+  account_status varchar(30) not null default 'active',
+  verification_status varchar(30) not null default 'approved',
+  rejection_reason text,
   college_name varchar(180),
   company_name varchar(180),
   department varchar(120),
@@ -18,7 +21,8 @@ create table if not exists users (
   company varchar(180),
   avatar_url text,
   bio text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  last_login_at timestamptz
 );
 
 create table if not exists organizers (
@@ -35,11 +39,12 @@ create table if not exists organizers (
 create table if not exists organizer_verification_assets (
   id bigserial primary key,
   user_id bigint not null references users(id) on delete cascade,
-  asset_type varchar(80) not null check (asset_type in ('college_id_proof', 'club_details', 'club_membership_proof')),
+  asset_type varchar(80) not null check (asset_type in ('college_id_proof', 'club_details', 'club_membership_proof', 'logo', 'verification_document')),
   file_url text not null,
   file_name varchar(255) not null,
   content_type varchar(120) not null,
-  status varchar(30) not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  details_json text,
+  status varchar(30) not null default 'pending' check (status in ('pending', 'approved', 'rejected', 'more_info_requested', 'suspended')),
   created_at timestamptz not null default now()
 );
 

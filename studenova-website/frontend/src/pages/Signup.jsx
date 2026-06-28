@@ -290,7 +290,10 @@ export default function Signup() {
       return;
     }
     try {
-      await verifyOtp();
+      const otpVerified = await verifyOtp();
+      if (!otpVerified) {
+        return;
+      }
       const signupPayload = {
         name: form.fullName || form.organizerName || form.companyName,
         email: form.email || form.officialEmail || form.workEmail,
@@ -300,6 +303,7 @@ export default function Signup() {
         company: form.companyName
       };
 
+      let createdUser;
       if (['college_admin', 'industry_organizer'].includes(config.role)) {
         const multipartPayload = new FormData();
         Object.entries(signupPayload).forEach(([key, value]) => {
@@ -319,11 +323,16 @@ export default function Signup() {
             committeeMemberPhone: clubDetails.committeeMemberPhone
           }));
         }
-        await signup(multipartPayload);
+        createdUser = await signup(multipartPayload);
       } else {
-        await signup(signupPayload);
+        createdUser = await signup(signupPayload);
       }
-      navigate(`/dashboard/${roleType}`);
+      const verificationStatus = createdUser?.verificationStatus || createdUser?.verification_status || 'pending';
+      if (config.role === 'college_admin' && verificationStatus === 'pending') {
+        navigate('/college/pending-approval');
+      } else {
+        navigate(`/dashboard/${roleType}`);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Unable to create account');
     }

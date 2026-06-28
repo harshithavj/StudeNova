@@ -53,6 +53,22 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateProfile = async (payload) => {
+    setLoading(true);
+    try {
+      const { data } = await api.patch('/auth/profile', payload);
+      localStorage.setItem('studenova_user', JSON.stringify(data.user));
+      setUser(data.user);
+      toast.success('Profile updated');
+      return data.user;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Unable to update profile');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const clearSession = () => {
     localStorage.removeItem('studenova_token');
     localStorage.removeItem('studenova_user');
@@ -81,7 +97,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ user, loading, login, signup, logout, deleteAccount, clearSession, isAuthenticated: Boolean(user) }),
+    () => ({ user, loading, login, signup, updateProfile, logout, deleteAccount, clearSession, isAuthenticated: Boolean(user) }),
     [user, loading]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -54,7 +54,7 @@ def list_events():
 
 
 @events_bp.post("")
-@roles_required("college_admin", "industry_organizer")
+@roles_required("college_organizer", "industry_organizer")
 def create_event():
     payload = event_create_schema.load(request.get_json() or {})
     user = current_user()
@@ -76,7 +76,7 @@ def get_event(event_id):
 
 
 @events_bp.put("/<int:event_id>")
-@roles_required("college_admin", "industry_organizer")
+@roles_required("college_organizer", "industry_organizer")
 def update_event(event_id):
     event = Event.query.get_or_404(event_id)
     if event.creator_id != current_user().id:
@@ -92,7 +92,7 @@ def update_event(event_id):
 
 
 @events_bp.delete("/<int:event_id>")
-@roles_required("college_admin", "industry_organizer")
+@roles_required("college_organizer", "industry_organizer")
 def delete_event(event_id):
     event = Event.query.get_or_404(event_id)
     if event.creator_id != current_user().id:

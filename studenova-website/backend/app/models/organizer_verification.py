@@ -11,6 +11,7 @@ class OrganizerVerificationAsset(db.Model):
     file_url = db.Column(db.Text, nullable=False)
     file_name = db.Column(db.String(255), nullable=False)
     content_type = db.Column(db.String(120), nullable=False)
+    details_json = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(30), nullable=False, default="pending")
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 

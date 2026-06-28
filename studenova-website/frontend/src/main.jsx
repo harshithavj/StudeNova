@@ -29,6 +29,9 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const SavedEvents = lazy(() => import('./pages/SavedEvents'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const PendingApproval = lazy(() => import('./pages/college/PendingApproval'));
+const RejectedOrganizer = lazy(() => import('./pages/college/RejectedOrganizer'));
+const CollegeDashboard = lazy(() => import('./pages/college/CollegeDashboard'));
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -60,8 +63,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                   <Route path="/dashboard/:roleType" element={<Dashboard />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/saved" element={<SavedEvents />} />
+                  <Route path="/college/pending-approval" element={<PendingApproval />} />
+                  <Route path="/college/rejected" element={<RejectedOrganizer />} />
+                  <Route path="/college/dashboard" element={<CollegeDashboard />} />
+                  <Route path="/college/events" element={<CollegeDashboard />} />
+                  <Route path="/college/events/create" element={<CollegeDashboard />} />
+                  <Route path="/college/registrations" element={<CollegeDashboard />} />
+                  <Route path="/college/notifications" element={<CollegeDashboard />} />
+                  <Route path="/college/profile" element={<CollegeDashboard />} />
                 </Route>
-                <Route element={<ProtectedRoute roles={['college_admin', 'industry_organizer']} />}>
+                <Route element={<ProtectedRoute roles={['admin']} />}>
                   <Route path="/admin" element={<AdminPanel />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />

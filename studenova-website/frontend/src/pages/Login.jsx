@@ -27,6 +27,17 @@ export default function Login() {
         toast.error('Use the separate STUDENOVA Admin website for admin access');
         return;
       }
+      if (signedInUser.role === 'college_organizer') {
+        const verificationStatus = signedInUser.verificationStatus || signedInUser.verification_status || 'approved';
+        if (verificationStatus === 'pending') {
+          navigate('/college/pending-approval');
+          return;
+        }
+        if (verificationStatus === 'rejected') {
+          navigate('/college/rejected');
+          return;
+        }
+      }
       navigate(location.state?.from?.pathname || '/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Unable to login');

@@ -56,7 +56,7 @@ def my_registrations():
 
 
 @registrations_bp.get("/events/<int:event_id>")
-@roles_required("college_admin", "industry_organizer")
+@roles_required("college_organizer", "industry_organizer")
 def event_registrations(event_id):
     event = Event.query.get_or_404(event_id)
     if event.creator_id != current_user().id:
@@ -65,7 +65,7 @@ def event_registrations(event_id):
 
 
 @registrations_bp.post("/check-in/<qr_token>")
-@roles_required("college_admin", "industry_organizer")
+@roles_required("college_organizer", "industry_organizer")
 def check_in(qr_token):
     registration = Registration.query.filter_by(qr_token=qr_token).first_or_404()
     registration.status = "checked_in"

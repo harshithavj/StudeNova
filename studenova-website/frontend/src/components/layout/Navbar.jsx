@@ -14,7 +14,7 @@ const navItems = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuth();
-  const dashboardPath = user?.role === 'college_admin' ? '/dashboard/college-organizer' : user?.role === 'industry_organizer' ? '/dashboard/industry-organizer' : '/dashboard/student';
+  const dashboardPath = user?.role === 'college_organizer' || user?.role === 'college_admin' ? '/college/dashboard' : user?.role === 'industry_organizer' ? '/dashboard/industry-organizer' : '/dashboard/student';
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">

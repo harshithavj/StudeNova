@@ -1,5 +1,7 @@
 import logging
-from flask import Flask, jsonify, request
+from pathlib import Path
+
+from flask import Flask, jsonify, request, send_from_directory
 from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
@@ -49,6 +51,11 @@ def create_app(config_class=Config):
     @app.get("/api/health")
     def health():
         return {"status": "ok", "service": "studenova-api"}
+
+    @app.get("/api/uploads/<bucket>/<path:filename>")
+    def uploaded_file(bucket, filename):
+        upload_root = app.config.get("LOCAL_UPLOAD_ROOT") or str(Path(app.instance_path) / "uploads")
+        return send_from_directory(Path(upload_root) / bucket, filename)
 
     @app.post("/api/register-event")
     @jwt_required()
@@ -145,3 +152,9 @@ def backfill_sqlite_defaults(app):
             )
             if result.rowcount:
                 app.logger.info("Backfilled %s user account status value(s)", result.rowcount)
+        if "verification_status" in columns_by_table.get("users", set()):
+            result = connection.execute(
+                text("UPDATE users SET verification_status = 'approved' WHERE verification_status IS NULL OR verification_status = ''")
+            )
+            if result.rowcount:
+                app.logger.info("Backfilled %s user verification status value(s)", result.rowcount)
