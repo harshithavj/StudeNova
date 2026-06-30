@@ -43,9 +43,7 @@ const pageAliases = {
 const pageSections = [
   '#overview',
   '#verificationCenter',
-  '#verificationDetails',
   '#platformMonitoring',
-  '#eventCategoryPanel',
   '.event-monitoring-panel',
   '.lower-grid',
   '#userManagement',
@@ -68,7 +66,7 @@ const pageSections = [
 
 const pageSectionMap = {
   dashboard: ['#overview', '.lower-grid'],
-  verification: ['#verificationCenter', '#collegeVerificationPanel', '#industryVerificationPanel', '#verificationDetails'],
+  verification: ['#verificationCenter', '#collegeVerificationPanel', '#industryVerificationPanel'],
   monitoring: ['#platformMonitoring', '.event-monitoring-panel', '.lower-grid'],
   users: ['#userManagement', '#studentsManagementPanel', '#collegeManagementPanel', '#industryManagementPanel'],
   achievements: ['#achievementVerificationPage', '#achievementVerification'],
@@ -105,6 +103,25 @@ function formatNumber(value) {
 
 function formatDate(value) {
   return value ? dateFormatter.format(new Date(value)) : 'No date';
+}
+
+function showToast(message, type = 'error') {
+  // Remove existing toasts first to prevent stacking
+  document.querySelectorAll('.toast').forEach((t) => t.remove());
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 3500);
 }
 
 function authHeaders() {
@@ -266,28 +283,38 @@ function renderVerificationDetails(userId) {
   document.querySelector('#verificationDetails').classList.remove('hidden');
   document.querySelector('#verificationDetails').classList.remove('admin-page-hidden');
   document.querySelector('#verificationDetailsSubtitle').textContent = `${requestItem.organizer_name} - ${requestItem.organization_name}`;
-  document.querySelector('#verificationStatusPill').textContent = statusLabel(requestItem.status);
+  
+  const statusPill = document.querySelector('#verificationStatusPill');
+  statusPill.textContent = statusLabel(requestItem.status);
+  statusPill.className = `status-pill ${requestItem.status}`;
+
   document.querySelector('#verificationDetailsBody').innerHTML = `
     <div class="details-grid">
       <div class="detail-item"><span>Organizer Name</span><strong>${requestItem.organizer_name}</strong></div>
       <div class="detail-item"><span>College Name</span><strong>${requestItem.college_name || 'Not applicable'}</strong></div>
       <div class="detail-item"><span>Company Name</span><strong>${requestItem.company_name || 'Not applicable'}</strong></div>
       <div class="detail-item"><span>Official Email</span><strong>${requestItem.official_email}</strong></div>
-      <div class="detail-item"><span>Department</span><strong>${requestItem.department}</strong></div>
-      <div class="detail-item"><span>Designation</span><strong>${requestItem.designation}</strong></div>
+      <div class="detail-item"><span>Department</span><strong>${requestItem.department || 'Not captured'}</strong></div>
+      <div class="detail-item"><span>Designation</span><strong>${requestItem.designation || 'Organizer'}</strong></div>
       <div class="detail-item"><span>Submission Date</span><strong>${formatDate(requestItem.submission_date)}</strong></div>
       <div class="detail-item"><span>Current Status</span><strong>${statusLabel(requestItem.status)}</strong></div>
     </div>
     <div>
       <h3>Verification Documents</h3>
       <div class="document-list">
-        ${requestItem.documents.length ? requestItem.documents.map((documentItem) => `
+        ${requestItem.documents && requestItem.documents.length ? requestItem.documents.map((documentItem) => `
           <a class="document-link" href="${documentItem.file_url}" target="_blank" rel="noreferrer">
             <span>${documentItem.asset_type.replaceAll('_', ' ')}</span>
             <span>${documentItem.file_name}</span>
           </a>
         `).join('') : '<p class="empty-state">No documents uploaded.</p>'}
       </div>
+    </div>
+    <div class="verification-details-actions">
+      <button class="small-button approve-button" type="button" data-verification-action="approve" data-user-id="${requestItem.user_id}">Approve</button>
+      <button class="small-button reject-button" type="button" data-verification-action="reject" data-user-id="${requestItem.user_id}">Reject</button>
+      <button class="small-button" type="button" data-verification-action="request_more_information" data-user-id="${requestItem.user_id}">Request More Information</button>
+      ${requestItem.status === 'approved' ? `<button class="small-button" type="button" data-verification-action="suspend" data-user-id="${requestItem.user_id}">Suspend</button>` : ''}
     </div>
   `;
   document.querySelector('#verificationDetails').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -299,7 +326,16 @@ async function updateVerification(userId, action) {
     headers: authHeaders(),
     body: JSON.stringify({ action })
   });
+  const actionLabels = {
+    approve: 'approved',
+    reject: 'rejected',
+    request_more_information: 'more information requested',
+    suspend: 'suspended'
+  };
+  const actionLabel = actionLabels[action] || action;
+  showToast(`Verification status updated: ${actionLabel}!`, 'success');
   await loadDashboard();
+  renderVerificationDetails(userId);
 }
 
 function renderCategories(items = []) {
@@ -605,6 +641,9 @@ async function loadDashboard() {
       showLogin();
     }
     setMessage(error.message);
+    if (!dashboardView.classList.contains('hidden')) {
+      showToast(`Failed to load data: ${error.message}`, 'error');
+    }
   } finally {
     refreshButton.disabled = false;
     refreshButton.textContent = 'Refresh';
@@ -745,10 +784,11 @@ document.addEventListener('click', async (event) => {
     try {
       await updateVerification(actionButton.dataset.userId, actionButton.dataset.verificationAction);
     } catch (error) {
-      setMessage(error.message);
+      showToast(error.message, 'error');
     } finally {
       actionButton.disabled = false;
     }
+    return;
   }
 
   const achievementButton = event.target.closest('[data-achievement-action]');
@@ -760,12 +800,20 @@ document.addEventListener('click', async (event) => {
         headers: authHeaders(),
         body: JSON.stringify({ action: achievementButton.dataset.achievementAction })
       });
+      const actionLabels = {
+        verify: 'verified',
+        reject: 'rejected',
+        request_additional_proof: 'additional proof requested'
+      };
+      const actionLabel = actionLabels[achievementButton.dataset.achievementAction] || achievementButton.dataset.achievementAction;
+      showToast(`Achievement status updated: ${actionLabel}!`, 'success');
       await loadDashboard();
     } catch (error) {
-      setMessage(error.message);
+      showToast(error.message, 'error');
     } finally {
       achievementButton.disabled = false;
     }
+    return;
   }
 
   const userButton = event.target.closest('[data-user-action]');
@@ -777,12 +825,20 @@ document.addEventListener('click', async (event) => {
         headers: authHeaders(),
         body: JSON.stringify({ action: userButton.dataset.userAction })
       });
+      const actionLabels = {
+        activate: 'activated',
+        suspend: 'suspended',
+        ban: 'banned'
+      };
+      const actionLabel = actionLabels[userButton.dataset.userAction] || userButton.dataset.userAction;
+      showToast(`User status updated: ${actionLabel}!`, 'success');
       await loadDashboard();
     } catch (error) {
-      setMessage(error.message);
+      showToast(error.message, 'error');
     } finally {
       userButton.disabled = false;
     }
+    return;
   }
 
   const eventButton = event.target.closest('[data-event-action]');
@@ -794,12 +850,21 @@ document.addEventListener('click', async (event) => {
         headers: authHeaders(),
         body: JSON.stringify({ action: eventButton.dataset.eventAction })
       });
+      const actionLabels = {
+        publish: 'published',
+        complete: 'completed',
+        flag: 'flagged',
+        cancel: 'cancelled'
+      };
+      const actionLabel = actionLabels[eventButton.dataset.eventAction] || eventButton.dataset.eventAction;
+      showToast(`Event status updated: ${actionLabel}!`, 'success');
       await loadDashboard();
     } catch (error) {
-      setMessage(error.message);
+      showToast(error.message, 'error');
     } finally {
       eventButton.disabled = false;
     }
+    return;
   }
 });
 

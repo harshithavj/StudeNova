@@ -830,3 +830,41 @@ td:first-child {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: var(--panel, #ffffff);
+  color: var(--ink, #0f172a);
+  padding: 14px 24px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+  border-left: 4px solid var(--coral, #ff5f6d);
+  z-index: 1000;
+  transform: translateY(100px);
+  opacity: 0;
+  font-weight: 800;
+  font-size: 14px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  pointer-events: none;
+}
+.toast.success {
+  border-left-color: var(--teal, #0f766e);
+}
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Verification Details Actions */
+.verification-details-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+
