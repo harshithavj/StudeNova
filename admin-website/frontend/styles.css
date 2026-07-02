@@ -572,8 +572,11 @@ button {
 }
 
 .activity-row {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
   align-items: start;
   border-bottom: 1px solid #edf2f7;
+  gap: 16px;
   padding: 16px 18px;
 }
 
@@ -582,7 +585,6 @@ button {
 }
 
 .activity-type {
-  flex: 0 0 112px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 900;
@@ -593,6 +595,7 @@ button {
 .activity-title {
   margin: 0;
   font-weight: 900;
+  overflow-wrap: anywhere;
 }
 
 .activity-detail {
@@ -600,6 +603,7 @@ button {
   color: var(--muted);
   font-size: 14px;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .table-wrap {
@@ -657,6 +661,34 @@ td:first-child {
   padding: 18px;
 }
 
+.audit-history-grid {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.audit-history-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.audit-history-card > h3 {
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 14px 16px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.audit-history-list {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
 .monitoring-card,
 .management-card,
 .analytics-card,
@@ -703,6 +735,11 @@ td:first-child {
   color: var(--muted);
   font-size: 14px;
   font-weight: 700;
+}
+
+.audit-log-card h3,
+.audit-log-card p {
+  overflow-wrap: anywhere;
 }
 
 .achievement-types {
@@ -813,6 +850,10 @@ td:first-child {
   }
 
   .module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .audit-history-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

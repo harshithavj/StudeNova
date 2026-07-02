@@ -500,13 +500,34 @@ function renderAnalyticsSummary(summary = {}) {
 }
 
 function renderAuditLogs(items = []) {
-  document.querySelector('#auditLogList').innerHTML = items.length ? items.map((item) => `
-    <article class="management-card">
-      <h3>${item.action}</h3>
-      <p>${item.user} - ${item.role} - ${item.status}</p>
-      <p>${formatDate(item.timestamp)}</p>
-    </article>
-  `).join('') : '<p class="empty-state">No audit records yet.</p>';
+  const list = document.querySelector('#auditLogList');
+  const isAdminRecord = (item) => {
+    const text = `${item.action || ''} ${item.user || ''}`.toLowerCase();
+    return text.includes('(admin)') || text.includes('joined as admin');
+  };
+  const renderAuditBox = (title, records, emptyText) => {
+    const rows = records.length ? records.map((item) => `
+      <article class="management-card audit-log-card">
+        <h3>${item.action}</h3>
+        <p>${item.user} - ${item.role} - ${item.status}</p>
+        <p>${formatDate(item.timestamp)}</p>
+      </article>
+    `).join('') : `<p class="empty-state">${emptyText}</p>`;
+
+    return `
+      <section class="audit-history-card">
+        <h3>${title}</h3>
+        <div class="audit-history-list">${rows}</div>
+      </section>
+    `;
+  };
+  const adminRecords = items.filter(isAdminRecord);
+  const nonAdminRecords = items.filter((item) => !isAdminRecord(item));
+
+  list.innerHTML = `
+    ${renderAuditBox('Non-Admin History', nonAdminRecords, 'No non-admin audit records yet.')}
+    ${renderAuditBox('Admin History', adminRecords, 'No admin audit records yet.')}
+  `;
 }
 
 function renderSettings(settings = {}) {
