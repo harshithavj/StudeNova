@@ -197,14 +197,38 @@ def admin_activity():
             "detail": user.email,
             "occurred_at": serialize_datetime(user.created_at),
         })
-    for login in LoginHistory.query.order_by(LoginHistory.occurred_at.desc()).limit(24).all():
-        recent_activity.append({
+    login_history_rows = LoginHistory.query.order_by(LoginHistory.occurred_at.desc()).limit(120).all()
+    unique_login_rows = []
+    seen_login_users = set()
+    for login in login_history_rows:
+        login_key = login.user_id or f"unknown-{login.id}"
+        if login_key in seen_login_users:
+            continue
+        seen_login_users.add(login_key)
+        unique_login_rows.append(login)
+
+    def serialize_login_activity(login):
+        return {
             "id": f"login-{login.user_id}-{int(login.occurred_at.timestamp())}",
             "type": "Login",
             "title": f"{login.user.name} logged in" if login.user else "User logged in",
             "detail": f"{login.user.email} ({login.user.role.replace('_', ' ')})" if login.user else "Unknown user",
             "occurred_at": serialize_datetime(login.occurred_at),
-        })
+        }
+
+    for login in unique_login_rows:
+        recent_activity.append(serialize_login_activity(login))
+
+    non_admin_login_history = [
+        serialize_login_activity(login)
+        for login in unique_login_rows
+        if login.user and login.user.role != "admin"
+    ][:40]
+    admin_login_history = [
+        serialize_login_activity(login)
+        for login in unique_login_rows
+        if login.user and login.user.role == "admin"
+    ][:40]
     for event in Event.query.order_by(Event.created_at.desc()).limit(8).all():
         recent_activity.append({
             "id": f"event-{event.id}",
@@ -321,6 +345,10 @@ def admin_activity():
             for event_id, title, category, status, popularity_score, registrations_count in top_events
         ],
         "recent_activity": recent_activity,
+        "login_history": {
+            "non_admins": non_admin_login_history,
+            "admins": admin_login_history,
+        },
         "verification_requests": verification_requests,
         "live_activity": recent_activity[:12],
         "event_monitoring": build_event_monitoring(),

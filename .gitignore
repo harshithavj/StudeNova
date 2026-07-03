@@ -3,6 +3,8 @@ dist/
 .env
 __pycache__/
 *.pyc
-.env
 .venv/
 venv/
+*.log
+.agents/
+.codex/
