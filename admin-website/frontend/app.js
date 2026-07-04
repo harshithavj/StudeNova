@@ -235,6 +235,36 @@ function statusLabel(status) {
   return (status || 'pending').replaceAll('_', ' ');
 }
 
+function isApprovedVerification(status) {
+  return status === 'approved';
+}
+
+function renderVerificationReviewButtons(userId, status, options = {}) {
+  const approved = isApprovedVerification(status);
+  const {
+    includeReviewButton = true,
+    includeRejectActions = true,
+    allowSuspend = false
+  } = options;
+  const reviewLabel = approved ? 'Review Again' : 'View Details';
+  const reviewButton = includeReviewButton
+    ? `<button class="small-button" type="button" data-view-verification="${userId}">${reviewLabel}</button>`
+    : '';
+  const approveButton = approved
+    ? '<button class="small-button approve-button" type="button" disabled>Approved</button>'
+    : `<button class="small-button approve-button" type="button" data-verification-action="approve" data-user-id="${userId}">Approve</button>`;
+  const secondaryActions = includeRejectActions && !approved
+    ? `
+        <button class="small-button reject-button" type="button" data-verification-action="reject" data-user-id="${userId}">Reject</button>
+        <button class="small-button" type="button" data-verification-action="request_more_information" data-user-id="${userId}">Request More Information</button>
+      `
+    : '';
+  const suspendButton = allowSuspend && approved
+    ? `<button class="small-button" type="button" data-verification-action="suspend" data-user-id="${userId}">Suspend</button>`
+    : '';
+  return `${reviewButton}${approveButton}${secondaryActions}${suspendButton}`;
+}
+
 function renderVerificationList(containerId, badgeId, requests = [], allowSuspend = false) {
   const container = document.querySelector(containerId);
   const pendingCount = requests.filter((item) => ['pending', 'more_info_requested'].includes(item.status)).length;
@@ -247,11 +277,7 @@ function renderVerificationList(containerId, badgeId, requests = [], allowSuspen
       </div>
       <span class="status-pill">${statusLabel(item.status)}</span>
       <div class="verification-actions">
-        <button class="small-button" type="button" data-view-verification="${item.user_id}">View Details</button>
-        <button class="small-button approve-button" type="button" data-verification-action="approve" data-user-id="${item.user_id}">Approve</button>
-        <button class="small-button reject-button" type="button" data-verification-action="reject" data-user-id="${item.user_id}">Reject</button>
-        <button class="small-button" type="button" data-verification-action="request_more_information" data-user-id="${item.user_id}">Request More Information</button>
-        ${allowSuspend ? `<button class="small-button" type="button" data-verification-action="suspend" data-user-id="${item.user_id}">Suspend</button>` : ''}
+        ${renderVerificationReviewButtons(item.user_id, item.status, { allowSuspend })}
       </div>
     </article>
   `).join('') : '<p class="empty-state">No verification requests found.</p>';
@@ -262,7 +288,7 @@ function renderVerificationRequests(items = []) {
   renderVerificationList(
     '#collegeVerificationList',
     '#collegePendingBadge',
-    items.filter((item) => item.role === 'college_admin')
+    items.filter((item) => ['college_admin', 'college_organizer'].includes(item.role))
   );
   renderVerificationList(
     '#industryVerificationList',
@@ -311,10 +337,10 @@ function renderVerificationDetails(userId) {
       </div>
     </div>
     <div class="verification-details-actions">
-      <button class="small-button approve-button" type="button" data-verification-action="approve" data-user-id="${requestItem.user_id}">Approve</button>
-      <button class="small-button reject-button" type="button" data-verification-action="reject" data-user-id="${requestItem.user_id}">Reject</button>
-      <button class="small-button" type="button" data-verification-action="request_more_information" data-user-id="${requestItem.user_id}">Request More Information</button>
-      ${requestItem.status === 'approved' ? `<button class="small-button" type="button" data-verification-action="suspend" data-user-id="${requestItem.user_id}">Suspend</button>` : ''}
+      ${renderVerificationReviewButtons(requestItem.user_id, requestItem.status, {
+        includeReviewButton: isApprovedVerification(requestItem.status),
+        allowSuspend: isApprovedVerification(requestItem.status)
+      })}
     </div>
   `;
   document.querySelector('#verificationDetails').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -438,7 +464,10 @@ function renderManagementList(selector, items = [], type = 'student') {
       <p>${type === 'student' ? `${user.participation_count} participations - ${user.achievements_count} achievements - ${user.reports_against_user} reports`
         : `${statusLabel(user.verification_status)} - ${user.events_created} events - ${user.college || user.company || 'Organization not provided'}`}</p>
       <div class="row-actions">
-        ${type !== 'student' ? `<button class="small-button approve-button" type="button" data-view-verification="${user.id}">Review Verification</button>` : ''}
+        ${type !== 'student' ? (isApprovedVerification(user.verification_status)
+          ? `<button class="small-button approve-button" type="button" disabled>Approved</button>
+            <button class="small-button" type="button" data-view-verification="${user.id}">Review Again</button>`
+          : `<button class="small-button approve-button" type="button" data-view-verification="${user.id}">Review Verification</button>`) : ''}
         <button class="small-button" type="button" data-user-action="activate" data-user-id="${user.id}">Activate</button>
         <button class="small-button" type="button" data-user-action="suspend" data-user-id="${user.id}">Suspend</button>
         <button class="small-button reject-button" type="button" data-user-action="ban" data-user-id="${user.id}">Ban</button>

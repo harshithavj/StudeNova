@@ -439,6 +439,11 @@ button {
   font-size: 12px;
 }
 
+.small-button:disabled {
+  cursor: default;
+  opacity: 0.82;
+}
+
 .approve-button {
   background: var(--teal);
   color: #fff;
