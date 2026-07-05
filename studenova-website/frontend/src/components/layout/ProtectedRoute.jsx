@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getCollegeOrganizerPath, isCollegeOrganizer } from '../../utils/navigation';
 
 export default function ProtectedRoute({ roles, loginPath = '/login' }) {
   const { user } = useAuth();
@@ -7,16 +8,13 @@ export default function ProtectedRoute({ roles, loginPath = '/login' }) {
 
   if (!user) return <Navigate to={loginPath} state={{ from: location }} replace />;
   if (roles?.length && !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
-  if (location.pathname.startsWith('/college/') && user.role === 'college_organizer') {
-    const verificationStatus = user.verificationStatus || user.verification_status || 'approved';
-    if (verificationStatus === 'pending' && location.pathname !== '/college/pending-approval') {
-      return <Navigate to="/college/pending-approval" replace />;
+  if (location.pathname.startsWith('/college/') && isCollegeOrganizer(user)) {
+    const organizerPath = getCollegeOrganizerPath(user);
+    if (organizerPath !== '/college/dashboard' && location.pathname !== organizerPath) {
+      return <Navigate to={organizerPath} replace />;
     }
-    if (verificationStatus === 'rejected' && location.pathname !== '/college/rejected') {
-      return <Navigate to="/college/rejected" replace />;
-    }
-    if (verificationStatus === 'approved' && ['/college/pending-approval', '/college/rejected'].includes(location.pathname)) {
-      return <Navigate to="/college/dashboard" replace />;
+    if (organizerPath === '/college/dashboard' && ['/college/pending-approval', '/college/rejected'].includes(location.pathname)) {
+      return <Navigate to={organizerPath} replace />;
     }
   }
   return <Outlet />;

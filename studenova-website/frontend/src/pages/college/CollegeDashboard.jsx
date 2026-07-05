@@ -1,5 +1,5 @@
 import { BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Bell, CalendarDays, ClipboardList, LayoutGrid, UsersRound } from 'lucide-react';
+import { Bell, CalendarDays, ClipboardList, LayoutGrid, LogOut, UsersRound } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import CollegeHome from './CollegeHome';
@@ -33,7 +33,7 @@ const navItems = [
 ];
 
 export default function CollegeDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const isRoot = location.pathname === '/college/dashboard';
   const isEventsView = location.pathname.startsWith('/college/events');
@@ -61,6 +61,9 @@ export default function CollegeDashboard() {
             <p className="font-bold text-slate-900">Verification status</p>
             <p className="mt-2 capitalize text-emerald-600">{user?.verificationStatus || 'approved'}</p>
           </div>
+          <button onClick={logout} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-nova-muted transition hover:border-nova-coral hover:text-nova-coral">
+            <LogOut size={16} /> Log out
+          </button>
         </aside>
         <section className="space-y-6">
           <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">

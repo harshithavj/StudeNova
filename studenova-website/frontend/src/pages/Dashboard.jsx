@@ -6,6 +6,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import EventCard from '../components/EventCard';
 import { useAuth } from '../context/AuthContext';
 import { analytics, sampleEvents } from '../data/mockData';
+import { getCollegeOrganizerPath, isCollegeOrganizer } from '../utils/navigation';
 
 const roleContent = {
   student: {
@@ -42,18 +43,12 @@ const roleContent = {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { roleType = user?.role === 'college_organizer' || user?.role === 'college_admin' ? 'college-organizer' : user?.role === 'industry_organizer' ? 'industry-organizer' : 'student' } = useParams();
+  const { roleType = isCollegeOrganizer(user) ? 'college-organizer' : user?.role === 'industry_organizer' ? 'industry-organizer' : 'student' } = useParams();
   if (roleType === 'student' || user?.role === 'student') {
     return <Navigate to="/dashboard/student" replace />;
   }
-  if ((user?.role === 'college_organizer' || user?.role === 'college_admin') && (user?.verificationStatus || user?.verification_status || 'approved') === 'pending') {
-    return <Navigate to="/college/pending-approval" replace />;
-  }
-  if ((user?.role === 'college_organizer' || user?.role === 'college_admin') && (user?.verificationStatus || user?.verification_status || 'approved') === 'rejected') {
-    return <Navigate to="/college/rejected" replace />;
-  }
-  if ((user?.role === 'college_organizer' || user?.role === 'college_admin') && roleType === 'college-organizer') {
-    return <Navigate to="/college/dashboard" replace />;
+  if (isCollegeOrganizer(user) && roleType === 'college-organizer') {
+    return <Navigate to={getCollegeOrganizerPath(user)} replace />;
   }
   const content = roleContent[roleType] || roleContent.student;
 

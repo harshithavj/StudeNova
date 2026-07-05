@@ -1,10 +1,12 @@
 import { ArrowRight, Building2, CalendarDays, CheckCircle2, Sparkles, UsersRound } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import EventCard from '../components/EventCard';
 import Button from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
 import { categories, sampleEvents } from '../data/mockData';
 import { daysUntil } from '../utils/date';
+import { getCollegeOrganizerPath, isCollegeOrganizer } from '../utils/navigation';
 
 const stats = [
   { label: 'Events indexed', value: '2.4K', icon: CalendarDays },
@@ -19,6 +21,12 @@ const mockCards = [
 ];
 
 export default function Home() {
+  const { user } = useAuth();
+
+  if (isCollegeOrganizer(user)) {
+    return <Navigate to={getCollegeOrganizerPath(user)} replace />;
+  }
+
   return (
     <>
       <section className="relative overflow-hidden">

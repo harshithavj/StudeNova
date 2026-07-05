@@ -2,6 +2,7 @@ import { Bell, Bookmark, LayoutDashboard, LogOut, Menu, Search, X } from 'lucide
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getDashboardPath } from '../../utils/navigation';
 import Button from '../ui/Button';
 
 const navItems = [
@@ -14,7 +15,7 @@ const navItems = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuth();
-  const dashboardPath = user?.role === 'college_organizer' || user?.role === 'college_admin' ? '/college/dashboard' : user?.role === 'industry_organizer' ? '/dashboard/industry-organizer' : '/dashboard/student';
+  const dashboardPath = getDashboardPath(user);
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">

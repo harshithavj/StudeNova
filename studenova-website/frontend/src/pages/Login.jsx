@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import PasswordInput from '../components/ui/PasswordInput';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { getCollegeOrganizerPath, isCollegeOrganizer } from '../utils/navigation';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -27,16 +28,9 @@ export default function Login() {
         toast.error('Use the separate STUDENOVA Admin website for admin access');
         return;
       }
-      if (signedInUser.role === 'college_organizer') {
-        const verificationStatus = signedInUser.verificationStatus || signedInUser.verification_status || 'approved';
-        if (verificationStatus === 'pending') {
-          navigate('/college/pending-approval');
-          return;
-        }
-        if (verificationStatus === 'rejected') {
-          navigate('/college/rejected');
-          return;
-        }
+      if (isCollegeOrganizer(signedInUser)) {
+        navigate(getCollegeOrganizerPath(signedInUser));
+        return;
       }
       navigate(location.state?.from?.pathname || '/dashboard');
     } catch (error) {
