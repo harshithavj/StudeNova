@@ -67,6 +67,13 @@ def create_event():
     return jsonify(event_schema.dump(event)), 201
 
 
+@events_bp.get("/mine")
+@roles_required("college_organizer", "industry_organizer")
+def list_my_events():
+    events = Event.query.filter_by(creator_id=current_user().id).order_by(Event.starts_at.desc()).all()
+    return jsonify({"items": events_schema.dump(events), "total": len(events)})
+
+
 @events_bp.get("/<int:event_id>")
 def get_event(event_id):
     event = Event.query.get_or_404(event_id)
