@@ -177,10 +177,10 @@ function setAuthMode(mode) {
   setMessage('');
   const isSignup = mode === 'signup';
 
-  formTitle.textContent = isSignup ? 'Admin Signup' : 'Admin Login';
+  formTitle.textContent = isSignup ? 'Admin Signup' : 'Welcome Back, Admin';
   formSubtitle.textContent = isSignup
     ? 'Verify your email with OTP before creating an admin account.'
-    : 'Only admin accounts can enter this console.';
+    : 'Secure access to the STUDENOVA administration portal.';
   nameField.classList.toggle('hidden', !isSignup);
   confirmPasswordField.classList.toggle('hidden', !isSignup);
   otpField.classList.toggle('hidden', !isSignup);

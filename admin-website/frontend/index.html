@@ -1,289 +1,321 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>STUDENOVA Admin</title>
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <aside class="sidebar">
-        <a class="brand" href="#dashboard" aria-label="STUDENOVA Admin home">
-          <span class="brand-mark">AD</span>
-          <span>
-            <strong>STUDENOVA Admin</strong>
-            <small>Management website</small>
-          </span>
-        </a>
-        <nav class="nav-list" aria-label="Admin sections">
-          <a href="#dashboard" class="active" data-page-link="dashboard">Dashboard</a>
-          <a href="#verification" data-page-link="verification">Verification Center</a>
-          <a href="#monitoring" data-page-link="monitoring">Platform Monitoring</a>
-          <a href="#users" data-page-link="users">User Management</a>
-          <a href="#achievements" data-page-link="achievements">Achievement Verification</a>
-          <a href="#reports" data-page-link="reports">Reports, Moderation & Notifications</a>
-          <a href="#analytics" data-page-link="analytics">Analytics</a>
-          <a href="#audit-logs" data-page-link="audit-logs">Audit Logs</a>
-          <a href="#settings" data-page-link="settings">Settings</a>
-        </nav>
-      </aside>
 
-      <main class="main-panel">
-        <section id="loginView" class="login-view">
-          <div class="login-copy">
-            <p class="eyebrow">Separate Admin Website</p>
-            <h1>Manage everything happening on STUDENOVA.</h1>
-            <p>Sign in with an admin account to monitor users, organizers, events, registrations, saved events, notifications, and activity metrics.</p>
-          </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STUDENOVA Admin</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
 
-          <form id="loginForm" class="login-card">
-            <div class="card-heading">
-              <div>
-                <h2 id="formTitle">Admin Login</h2>
-                <p id="formSubtitle">Only admin accounts can enter this console.</p>
-              </div>
-              <span class="lock-icon">#</span>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#dashboard" aria-label="STUDENOVA Admin home">
+        <span class="brand-mark">AD</span>
+        <span>
+          <strong>STUDENOVA Admin</strong>
+          <small>Management website</small>
+        </span>
+      </a>
+      <nav class="nav-list" aria-label="Admin sections">
+        <a href="#dashboard" class="active" data-page-link="dashboard">Dashboard</a>
+        <a href="#verification" data-page-link="verification">Verification Center</a>
+        <a href="#monitoring" data-page-link="monitoring">Platform Monitoring</a>
+        <a href="#users" data-page-link="users">User Management</a>
+        <a href="#achievements" data-page-link="achievements">Achievement Verification</a>
+        <a href="#reports" data-page-link="reports">Reports, Moderation & Notifications</a>
+        <a href="#analytics" data-page-link="analytics">Analytics</a>
+        <a href="#audit-logs" data-page-link="audit-logs">Audit Logs</a>
+        <a href="#settings" data-page-link="settings">Settings</a>
+      </nav>
+    </aside>
+
+    <main class="main-panel">
+      <section id="loginView" class="login-view">
+        <div class="login-copy">
+          <p class="eyebrow">STUDENOVA ADMIN PORTAL</p>
+          <h1>Powering Every Student Opportunity.</h1>
+          <p>Manage colleges, verify organizers, approve events, monitor registrations, send notifications, and oversee
+            platform performance&mdash;all from one centralized dashboard.</p>
+        </div>
+
+        <form id="loginForm" class="login-card">
+          <div class="card-heading">
+            <div>
+              <h2 id="formTitle">Welcome Back, Admin</h2>
+              <p id="formSubtitle">Secure access to the STUDENOVA administration portal.</p>
             </div>
-            <label id="nameField" class="hidden">
-              Full name
-              <input id="nameInput" type="text" autocomplete="name" placeholder="Admin name" />
-            </label>
-            <label>
-              Admin email
-              <input id="emailInput" type="email" autocomplete="email" required placeholder="admin@example.com" />
-            </label>
-            <label>
-              Password
-              <input id="passwordInput" type="password" autocomplete="current-password" required placeholder="Password" />
-            </label>
-            <label id="confirmPasswordField" class="hidden">
-              Confirm password
-              <input id="confirmPasswordInput" type="password" autocomplete="new-password" placeholder="Confirm password" />
-            </label>
-            <label id="otpField" class="hidden">
-              Email OTP
-              <input id="otpInput" type="text" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit OTP" />
-            </label>
-            <button id="loginButton" type="submit">Login to Admin Dashboard</button>
-            <button id="otpButton" class="secondary-button hidden" type="button">Send OTP to Email</button>
-            <button id="toggleModeButton" class="link-button" type="button">Create admin account</button>
-            <p id="loginMessage" class="form-message" role="status"></p>
-          </form>
+            <span class="lock-icon">#</span>
+          </div>
+          <label id="nameField" class="hidden">
+            Full name
+            <input id="nameInput" type="text" autocomplete="name" placeholder="Admin name" />
+          </label>
+          <label>
+            Admin email
+            <input id="emailInput" type="email" autocomplete="email" required placeholder="admin@example.com" />
+          </label>
+          <label>
+            Password
+            <input id="passwordInput" type="password" autocomplete="current-password" required placeholder="Password" />
+          </label>
+          <label id="confirmPasswordField" class="hidden">
+            Confirm password
+            <input id="confirmPasswordInput" type="password" autocomplete="new-password"
+              placeholder="Confirm password" />
+          </label>
+          <label id="otpField" class="hidden">
+            Email OTP
+            <input id="otpInput" type="text" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit OTP" />
+          </label>
+          <button id="loginButton" type="submit">Login to Admin Dashboard</button>
+          <button id="otpButton" class="secondary-button hidden" type="button">Send OTP to Email</button>
+          <button id="toggleModeButton" class="link-button" type="button">Create admin account</button>
+          <p id="loginMessage" class="form-message" role="status"></p>
+        </form>
+      </section>
+
+      <section id="dashboardView" class="dashboard-view hidden">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Admin Console</p>
+            <h1>Website Activity</h1>
+          </div>
+          <div class="topbar-actions">
+            <span id="adminEmail" class="admin-email"></span>
+            <button id="refreshButton" class="secondary-button" type="button">Refresh</button>
+            <button id="logoutButton" class="dark-button" type="button">Logout</button>
+          </div>
+        </header>
+
+        <section id="overview" class="stats-grid" aria-label="Overview statistics">
+          <article class="stat-card">
+            <span>Total Students</span>
+            <strong id="studentsTotal">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Verified College Organizers</span>
+            <strong id="verifiedCollegeTotal">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Verified Industry Organizers</span>
+            <strong id="verifiedIndustryTotal">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Active Events</span>
+            <strong id="activeEventsTotal">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Completed Events</span>
+            <strong id="completedEventsTotal">0</strong>
+          </article>
+          <article class="stat-card warn-card">
+            <span>Pending Verifications</span>
+            <strong id="pendingVerificationsTotal">0</strong>
+          </article>
+          <article class="stat-card warn-card">
+            <span>Pending Reports</span>
+            <strong id="pendingReportsTotal">0</strong>
+          </article>
+          <article class="stat-card warn-card">
+            <span>Pending Achievement Reviews</span>
+            <strong id="pendingAchievementReviewsTotal">0</strong>
+          </article>
         </section>
 
-        <section id="dashboardView" class="dashboard-view hidden">
-          <header class="topbar">
-            <div>
-              <p class="eyebrow">Admin Console</p>
-              <h1>Website Activity</h1>
-            </div>
-            <div class="topbar-actions">
-              <span id="adminEmail" class="admin-email"></span>
-              <button id="refreshButton" class="secondary-button" type="button">Refresh</button>
-              <button id="logoutButton" class="dark-button" type="button">Logout</button>
-            </div>
-          </header>
-
-          <section id="overview" class="stats-grid" aria-label="Overview statistics">
-            <article class="stat-card">
-              <span>Total Students</span>
-              <strong id="studentsTotal">0</strong>
-            </article>
-            <article class="stat-card">
-              <span>Verified College Organizers</span>
-              <strong id="verifiedCollegeTotal">0</strong>
-            </article>
-            <article class="stat-card">
-              <span>Verified Industry Organizers</span>
-              <strong id="verifiedIndustryTotal">0</strong>
-            </article>
-            <article class="stat-card">
-              <span>Active Events</span>
-              <strong id="activeEventsTotal">0</strong>
-            </article>
-            <article class="stat-card">
-              <span>Completed Events</span>
-              <strong id="completedEventsTotal">0</strong>
-            </article>
-            <article class="stat-card warn-card">
-              <span>Pending Verifications</span>
-              <strong id="pendingVerificationsTotal">0</strong>
-            </article>
-            <article class="stat-card warn-card">
-              <span>Pending Reports</span>
-              <strong id="pendingReportsTotal">0</strong>
-            </article>
-            <article class="stat-card warn-card">
-              <span>Pending Achievement Reviews</span>
-              <strong id="pendingAchievementReviewsTotal">0</strong>
-            </article>
-          </section>
-
-          <section id="verificationCenter" class="verification-layout">
-            <article id="collegeVerificationPanel" class="panel">
-              <div class="panel-heading split-heading">
-                <div>
-                  <h2>College Organizer Verification</h2>
-                  <p>Review uploaded proofs, official email, and institution details.</p>
-                </div>
-                <span id="collegePendingBadge" class="count-badge">0 pending</span>
-              </div>
-              <div id="collegeVerificationList" class="verification-list"></div>
-            </article>
-            <article id="industryVerificationPanel" class="panel">
-              <div class="panel-heading split-heading">
-                <div>
-                  <h2>Industry Organizer Verification</h2>
-                  <p>Verify company name, official email, website, and documents.</p>
-                </div>
-                <span id="industryPendingBadge" class="count-badge">0 pending</span>
-              </div>
-              <div id="industryVerificationList" class="verification-list"></div>
-            </article>
-          </section>
-
-          <section id="verificationDetails" class="panel details-panel hidden">
+        <section id="verificationCenter" class="verification-layout">
+          <article id="collegeVerificationPanel" class="panel">
             <div class="panel-heading split-heading">
               <div>
-                <h2>Verification Details</h2>
-                <p id="verificationDetailsSubtitle">Select a request to inspect documents and status.</p>
+                <h2>College Organizer Verification</h2>
+                <p>Review uploaded proofs, official email, and institution details.</p>
               </div>
-              <span id="verificationStatusPill" class="status-pill">Pending</span>
+              <span id="collegePendingBadge" class="count-badge">0 pending</span>
             </div>
-            <div id="verificationDetailsBody" class="details-body"></div>
-          </section>
-
-          <section id="platformMonitoring" class="dashboard-grid">
-            <article id="eventCategoryPanel" class="panel">
-              <div class="panel-heading">
-                <h2>Events By Category</h2>
+            <div id="collegeVerificationList" class="verification-list"></div>
+          </article>
+          <article id="industryVerificationPanel" class="panel">
+            <div class="panel-heading split-heading">
+              <div>
+                <h2>Industry Organizer Verification</h2>
+                <p>Verify company name, official email, website, and documents.</p>
               </div>
-              <div id="categoryChart" class="bar-list"></div>
-            </article>
-            <article class="panel">
-              <div class="panel-heading">
-                <h2>Users By Role</h2>
-              </div>
-              <div id="roleList" class="role-list"></div>
-            </article>
-          </section>
-
-          <section class="panel event-monitoring-panel">
-            <div class="panel-heading">
-              <h2>Event Monitoring</h2>
-              <p>Upcoming, ongoing, completed, cancelled, and flagged events across Studenova.</p>
+              <span id="industryPendingBadge" class="count-badge">0 pending</span>
             </div>
-            <div id="eventMonitoringGrid" class="monitoring-grid"></div>
-          </section>
-
-          <section class="dashboard-grid lower-grid">
-            <article id="activity" class="panel">
-              <div class="panel-heading">
-                <h2>Live Activity Feed</h2>
-              </div>
-              <div id="activityList" class="activity-list"></div>
-            </article>
-            <article id="events" class="panel">
-              <div class="panel-heading">
-                <h2>Top Events</h2>
-              </div>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Event</th>
-                      <th>Category</th>
-                      <th>Status</th>
-                      <th>Registrations</th>
-                      <th>Score</th>
-                    </tr>
-                  </thead>
-                  <tbody id="topEventsTable"></tbody>
-                </table>
-              </div>
-            </article>
-          </section>
-
-          <section id="userManagement" class="module-grid">
-            <article id="studentsManagementPanel" class="panel">
-              <div class="panel-heading"><h2>Students</h2><p>Profiles, participation, achievements, and report counts.</p></div>
-              <div id="studentsList" class="management-list"></div>
-            </article>
-            <article id="collegeManagementPanel" class="panel">
-              <div class="panel-heading"><h2>College Organizers</h2><p>Verification status, events created, and college information.</p></div>
-              <div id="collegeUsersList" class="management-list"></div>
-            </article>
-            <article id="industryManagementPanel" class="panel">
-              <div class="panel-heading"><h2>Industry Organizers</h2><p>Verification status, posted opportunities, and activity summary.</p></div>
-              <div id="industryUsersList" class="management-list"></div>
-            </article>
-          </section>
-
-          <section id="achievementVerificationPage" class="single-module-page">
-            <article id="achievementVerification" class="panel">
-              <div class="panel-heading"><h2>Achievement Verification</h2><p>Review certificates, proofs, and achievement type.</p></div>
-              <div class="achievement-types">
-                <span>Participation Certificate</span>
-                <span>Winner Certificate</span>
-                <span>Cash Prize Proof</span>
-                <span>Hackathon Achievement</span>
-                <span>Competition Achievement</span>
-              </div>
-              <div id="achievementQueue" class="management-list"></div>
-            </article>
-          </section>
-
-          <section id="reportsModerationPage" class="single-module-page">
-            <article id="reportsModeration" class="panel">
-              <div class="panel-heading"><h2>Reports, Moderation & Notifications</h2><p>Review reported content and send platform-wide notices from one control section.</p></div>
-              <div id="reportsQueue" class="management-list"></div>
-              <div class="panel-heading"><h2>Notifications Center</h2><p>Send platform-wide notices to selected audiences.</p></div>
-              <form id="notificationForm" class="notification-form">
-                <label>Recipients
-                  <select id="recipientGroup">
-                    <option value="all">All Users</option>
-                    <option value="students">Students Only</option>
-                    <option value="college_organizers">College Organizers Only</option>
-                    <option value="industry_organizers">Industry Organizers Only</option>
-                  </select>
-                </label>
-                <label>Title
-                  <input id="notificationTitle" type="text" placeholder="Maintenance Notice" required />
-                </label>
-                <label>Message
-                  <textarea id="notificationBody" placeholder="Write the notification message" required></textarea>
-                </label>
-                <button class="dark-button" type="submit">Send Notification</button>
-                <p id="notificationMessage" class="form-message"></p>
-              </form>
-            </article>
-          </section>
-
-          <section id="analyticsPage" class="single-module-page">
-            <article id="analytics" class="panel">
-              <div class="panel-heading"><h2>Analytics</h2><p>User, event, domain, and achievement insights.</p></div>
-              <div id="analyticsSummary" class="management-list"></div>
-            </article>
-          </section>
-
-          <section id="auditLogsPage" class="single-module-page">
-            <article id="auditLogs" class="panel">
-              <div class="panel-heading"><h2>Audit Logs</h2><p>Tracked platform and admin-relevant actions.</p></div>
-              <div id="auditLogList" class="audit-history-grid"></div>
-            </article>
-          </section>
-
-          <section id="settingsPage" class="single-module-page">
-            <article id="settings" class="panel">
-              <div class="panel-heading"><h2>Settings</h2><p>Platform-level configuration and policy controls.</p></div>
-              <div id="settingsList" class="management-list"></div>
-            </article>
-          </section>
+            <div id="industryVerificationList" class="verification-list"></div>
+          </article>
         </section>
-      </main>
-    </div>
 
-    <script src="./app.js"></script>
-  </body>
+        <section id="verificationDetails" class="panel details-panel hidden">
+          <div class="panel-heading split-heading">
+            <div>
+              <h2>Verification Details</h2>
+              <p id="verificationDetailsSubtitle">Select a request to inspect documents and status.</p>
+            </div>
+            <span id="verificationStatusPill" class="status-pill">Pending</span>
+          </div>
+          <div id="verificationDetailsBody" class="details-body"></div>
+        </section>
+
+        <section id="platformMonitoring" class="dashboard-grid">
+          <article id="eventCategoryPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Events By Category</h2>
+            </div>
+            <div id="categoryChart" class="bar-list"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Users By Role</h2>
+            </div>
+            <div id="roleList" class="role-list"></div>
+          </article>
+        </section>
+
+        <section class="panel event-monitoring-panel">
+          <div class="panel-heading">
+            <h2>Event Monitoring</h2>
+            <p>Upcoming, ongoing, completed, cancelled, and flagged events across Studenova.</p>
+          </div>
+          <div id="eventMonitoringGrid" class="monitoring-grid"></div>
+        </section>
+
+        <section class="dashboard-grid lower-grid">
+          <article id="activity" class="panel">
+            <div class="panel-heading">
+              <h2>Live Activity Feed</h2>
+            </div>
+            <div id="activityList" class="activity-list"></div>
+          </article>
+          <article id="events" class="panel">
+            <div class="panel-heading">
+              <h2>Top Events</h2>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Event</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Registrations</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody id="topEventsTable"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section id="userManagement" class="module-grid">
+          <article id="studentsManagementPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Students</h2>
+              <p>Profiles, participation, achievements, and report counts.</p>
+            </div>
+            <div id="studentsList" class="management-list"></div>
+          </article>
+          <article id="collegeManagementPanel" class="panel">
+            <div class="panel-heading">
+              <h2>College Organizers</h2>
+              <p>Verification status, events created, and college information.</p>
+            </div>
+            <div id="collegeUsersList" class="management-list"></div>
+          </article>
+          <article id="industryManagementPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Industry Organizers</h2>
+              <p>Verification status, posted opportunities, and activity summary.</p>
+            </div>
+            <div id="industryUsersList" class="management-list"></div>
+          </article>
+        </section>
+
+        <section id="achievementVerificationPage" class="single-module-page">
+          <article id="achievementVerification" class="panel">
+            <div class="panel-heading">
+              <h2>Achievement Verification</h2>
+              <p>Review certificates, proofs, and achievement type.</p>
+            </div>
+            <div class="achievement-types">
+              <span>Participation Certificate</span>
+              <span>Winner Certificate</span>
+              <span>Cash Prize Proof</span>
+              <span>Hackathon Achievement</span>
+              <span>Competition Achievement</span>
+            </div>
+            <div id="achievementQueue" class="management-list"></div>
+          </article>
+        </section>
+
+        <section id="reportsModerationPage" class="single-module-page">
+          <article id="reportsModeration" class="panel">
+            <div class="panel-heading">
+              <h2>Reports, Moderation & Notifications</h2>
+              <p>Review reported content and send platform-wide notices from one control section.</p>
+            </div>
+            <div id="reportsQueue" class="management-list"></div>
+            <div class="panel-heading">
+              <h2>Notifications Center</h2>
+              <p>Send platform-wide notices to selected audiences.</p>
+            </div>
+            <form id="notificationForm" class="notification-form">
+              <label>Recipients
+                <select id="recipientGroup">
+                  <option value="all">All Users</option>
+                  <option value="students">Students Only</option>
+                  <option value="college_organizers">College Organizers Only</option>
+                  <option value="industry_organizers">Industry Organizers Only</option>
+                </select>
+              </label>
+              <label>Title
+                <input id="notificationTitle" type="text" placeholder="Maintenance Notice" required />
+              </label>
+              <label>Message
+                <textarea id="notificationBody" placeholder="Write the notification message" required></textarea>
+              </label>
+              <button class="dark-button" type="submit">Send Notification</button>
+              <p id="notificationMessage" class="form-message"></p>
+            </form>
+          </article>
+        </section>
+
+        <section id="analyticsPage" class="single-module-page">
+          <article id="analytics" class="panel">
+            <div class="panel-heading">
+              <h2>Analytics</h2>
+              <p>User, event, domain, and achievement insights.</p>
+            </div>
+            <div id="analyticsSummary" class="management-list"></div>
+          </article>
+        </section>
+
+        <section id="auditLogsPage" class="single-module-page">
+          <article id="auditLogs" class="panel">
+            <div class="panel-heading">
+              <h2>Audit Logs</h2>
+              <p>Tracked platform and admin-relevant actions.</p>
+            </div>
+            <div id="auditLogList" class="audit-history-grid"></div>
+          </article>
+        </section>
+
+        <section id="settingsPage" class="single-module-page">
+          <article id="settings" class="panel">
+            <div class="panel-heading">
+              <h2>Settings</h2>
+              <p>Platform-level configuration and policy controls.</p>
+            </div>
+            <div id="settingsList" class="management-list"></div>
+          </article>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+
 </html>
