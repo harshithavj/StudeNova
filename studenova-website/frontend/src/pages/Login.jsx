@@ -7,7 +7,7 @@ import Button from '../components/ui/Button';
 import PasswordInput from '../components/ui/PasswordInput';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { getCollegeOrganizerPath, isCollegeOrganizer } from '../utils/navigation';
+import { getCollegeOrganizerPath, getDashboardPath, isCollegeOrganizer } from '../utils/navigation';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -28,11 +28,27 @@ export default function Login() {
         toast.error('Use the separate STUDENOVA Admin website for admin access');
         return;
       }
+      
+      const destination = location.state?.from?.pathname || '';
       if (isCollegeOrganizer(signedInUser)) {
-        navigate(getCollegeOrganizerPath(signedInUser));
+        if (destination.startsWith('/college/')) {
+          navigate(destination);
+        } else {
+          navigate(getCollegeOrganizerPath(signedInUser));
+        }
         return;
       }
-      navigate(location.state?.from?.pathname || '/dashboard');
+      
+      if (signedInUser.role === 'student') {
+        if (destination.startsWith('/student/') || destination === '/dashboard/student' || destination === '/student-dashboard') {
+          navigate(destination);
+        } else {
+          navigate('/dashboard/student');
+        }
+        return;
+      }
+
+      navigate(destination || getDashboardPath(signedInUser));
     } catch (error) {
       toast.error(error.response?.data?.message || 'Unable to login');
     }
