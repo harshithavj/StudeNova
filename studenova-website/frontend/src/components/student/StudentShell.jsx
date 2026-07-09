@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom';
-import { Award, Bell, BookOpenCheck, Flame, Search, UserRound } from 'lucide-react';
+import { Award, Bell, BookOpenCheck, Flame, LogOut, Search, UserRound } from 'lucide-react';
 import BackButton from '../BackButton';
 import Breadcrumbs from '../Breadcrumbs';
+import { useAuth } from '../../context/AuthContext';
 
 export const studentNavItems = [
   { to: '/student/discover', label: 'Discover Events', icon: Search },
@@ -13,6 +14,8 @@ export const studentNavItems = [
 ];
 
 export function StudentSidebar({ name }) {
+  const { logout } = useAuth();
+
   return (
     <aside className="surface h-fit rounded-lg p-4 lg:sticky lg:top-24">
       <p className="text-xs font-bold uppercase tracking-wider text-nova-coral">Student dashboard</p>
@@ -24,6 +27,9 @@ export function StudentSidebar({ name }) {
           </NavLink>
         ))}
       </nav>
+      <button onClick={logout} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-nova-muted transition hover:border-nova-coral hover:text-nova-coral">
+        <LogOut size={16} /> Log out
+      </button>
     </aside>
   );
 }
