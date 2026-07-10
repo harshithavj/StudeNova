@@ -1,5 +1,5 @@
-import { NavLink } from 'react-router-dom';
-import { Award, Bell, BookOpenCheck, Flame, LogOut, Search, UserRound } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Award, Bell, BookOpenCheck, Flame, LogOut, Search, Trash2, UserRound } from 'lucide-react';
 import BackButton from '../BackButton';
 import Breadcrumbs from '../Breadcrumbs';
 import { useAuth } from '../../context/AuthContext';
@@ -14,7 +14,17 @@ export const studentNavItems = [
 ];
 
 export function StudentSidebar({ name }) {
-  const { logout } = useAuth();
+  const { logout, deleteAccount } = useAuth();
+  const navigate = useNavigate();
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('This will permanently delete your account and all your STUDENOVA data. You will need to register again. Continue?')) {
+      return;
+    }
+
+    await deleteAccount();
+    navigate('/auth/select-role');
+  };
 
   return (
     <aside className="surface h-fit rounded-lg p-4 lg:sticky lg:top-24">
@@ -29,6 +39,9 @@ export function StudentSidebar({ name }) {
       </nav>
       <button onClick={logout} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-nova-muted transition hover:border-nova-coral hover:text-nova-coral">
         <LogOut size={16} /> Log out
+      </button>
+      <button onClick={handleDeleteAccount} className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-nova-muted transition hover:border-red-500 hover:text-red-500">
+        <Trash2 size={16} /> Delete Account
       </button>
     </aside>
   );
