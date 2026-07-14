@@ -127,9 +127,9 @@ export default function ProfilePopover({ isOpen, onClose, className = "" }) {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
               <Trophy size={18} />
             </div>
-            <span className="text-sm font-semibold text-slate-700">Your Global Rank</span>
+            <span className="text-sm font-semibold text-slate-700">Event Participated</span>
           </div>
-          <span className="text-sm font-bold text-slate-800">1,370,869</span>
+          <span className="text-sm font-bold text-slate-800">26</span>
         </div>
 
         {/* Divider */}
@@ -141,9 +141,9 @@ export default function ProfilePopover({ isOpen, onClose, className = "" }) {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
               <Star size={18} fill="currentColor" />
             </div>
-            <span className="text-sm font-semibold text-slate-700">Your Points</span>
+            <span className="text-sm font-semibold text-slate-700">Event Won</span>
           </div>
-          <span className="text-sm font-bold text-slate-800">60</span>
+          <span className="text-sm font-bold text-slate-800">3</span>
         </div>
       </div>
 
