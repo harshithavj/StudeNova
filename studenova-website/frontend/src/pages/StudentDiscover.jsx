@@ -4,6 +4,9 @@ import EventCard from '../components/EventCard';
 import StudentShell from '../components/student/StudentShell';
 import { useAuth } from '../context/AuthContext';
 import { domains, eligibilityOptions, sampleEvents } from '../data/mockData';
+import { useEvents } from '../hooks/useEvents';
+import { daysUntil } from '../utils/date';
+import Skeleton from '../components/ui/Skeleton';
 
 const discoverCategories = [
   'Hackathons',
@@ -45,21 +48,38 @@ function matchesTeamSize(eventTeamSize, selectedTeamSize) {
   return value.includes('team') || value.includes('+') || (numbers.length > 1 && max > 2) || (numbers.length === 1 && min > 2);
 }
 
+function getRegistrationStatus(event) {
+  if (event.registration_status) return event.registration_status;
+  const deadline = event.deadline || event.registration_deadline;
+  if (!deadline) return 'Open';
+  const days = daysUntil(deadline);
+  if (days <= 0) return 'Closed';
+  if (days <= 3) return 'Closing Soon';
+  return 'Open';
+}
+
 export default function StudentDiscover() {
   const { user } = useAuth();
   const [filters, setFilters] = useState({ q: '', category: '', domain: '', mode: '', eligibility: '', registrationStatus: '', teamSize: '' });
+  const { events, loading } = useEvents(filters);
   const update = (key, value) => setFilters((current) => ({ ...current, [key]: value }));
 
-  const events = useMemo(() => sampleEvents.filter((event) => {
+  const filteredEvents = useMemo(() => events.filter((event) => {
     const q = filters.q.toLowerCase();
-    return (!q || `${event.title} ${event.tags.join(' ')} ${event.domain} ${event.description}`.toLowerCase().includes(q))
+    const eventTags = Array.isArray(event.tags) ? event.tags : [];
+    const eventOrganizer = event.organizer || event.conducting_organization || event.organizer_name || '';
+    const eventDesc = event.description || '';
+    const eventTitle = event.title || '';
+    const eventDomain = event.domain || '';
+
+    return (!q || `${eventTitle} ${eventTags.join(' ')} ${eventDomain} ${eventDesc} ${eventOrganizer}`.toLowerCase().includes(q))
       && (!filters.category || event.category === filters.category)
       && (!filters.domain || event.domain === filters.domain)
-      && (!filters.mode || event.mode === filters.mode)
+      && (!filters.mode || event.mode?.toLowerCase() === filters.mode?.toLowerCase())
       && (!filters.eligibility || event.eligibility === filters.eligibility)
-      && (!filters.registrationStatus || event.registration_status === filters.registrationStatus)
+      && (!filters.registrationStatus || getRegistrationStatus(event) === filters.registrationStatus)
       && matchesTeamSize(event.team_size, filters.teamSize);
-  }), [filters]);
+  }), [events, filters]);
 
   return (
     <StudentShell user={user}>
@@ -104,7 +124,13 @@ export default function StudentDiscover() {
           </div>
         </section>
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {events.map((event) => <EventCard key={event.id} event={event} />)}
+          {loading ? (
+            Array.from({ length: 6 }).map((_, index) => <Skeleton key={index} className="h-96" />)
+          ) : filteredEvents.length > 0 ? (
+            filteredEvents.map((event) => <EventCard key={event.id} event={event} />)
+          ) : (
+            <div className="col-span-full py-10 text-center text-nova-muted font-bold">No events found matching your filters.</div>
+          )}
         </div>
       </div>
     </StudentShell>

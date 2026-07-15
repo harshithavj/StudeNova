@@ -5,6 +5,16 @@ import toast from 'react-hot-toast';
 import { daysUntil, formatDate } from '../utils/date';
 import Button from './ui/Button';
 
+function getRegistrationStatus(event) {
+  if (event.registration_status) return event.registration_status;
+  const deadline = event.deadline || event.registration_deadline;
+  if (!deadline) return 'Open';
+  const days = daysUntil(deadline);
+  if (days <= 0) return 'Closed';
+  if (days <= 3) return 'Closing Soon';
+  return 'Open';
+}
+
 export default function EventCard({ event }) {
   const location = useLocation();
   const linkState = { from: `${location.pathname}${location.search}` };
@@ -22,10 +32,15 @@ export default function EventCard({ event }) {
     toast('Complete registration on the original platform, then mark it completed here.');
   };
 
+  const imageUrl = event.image_url || event.poster_url || event.event_banner || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80';
+  const eventDate = event.date || event.starts_at;
+  const eventDeadline = event.deadline || event.registration_deadline;
+  const regStatus = getRegistrationStatus(event);
+
   return (
     <motion.article whileHover={{ y: -5 }} className="surface overflow-hidden rounded-lg transition">
       <Link to={`/events/${event.id}`} state={linkState} className="block">
-        <img src={event.image_url} alt={event.title} className="h-48 w-full object-cover" />
+        <img src={imageUrl} alt={event.title} className="h-48 w-full object-cover" />
       </Link>
       <div className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-3">
@@ -42,15 +57,15 @@ export default function EventCard({ event }) {
             <span className="rounded-lg bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">{event.domain}</span>
           </span>
           <span className="flex items-center gap-2"><Tags size={16} />{event.tags?.join(', ')}</span>
-          <span className="flex items-center gap-2"><CalendarClock size={16} />Event: {formatDate(event.date)}</span>
-          <span className="flex items-center gap-2"><CalendarClock size={16} />Deadline: {formatDate(event.deadline)}</span>
+          <span className="flex items-center gap-2"><CalendarClock size={16} />Event: {formatDate(eventDate)}</span>
+          <span className="flex items-center gap-2"><CalendarClock size={16} />Deadline: {formatDate(eventDeadline)}</span>
           <span className="flex items-center gap-2"><Users size={16} />{event.eligibility} / {event.mode}</span>
         </div>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-bold text-nova-coral">{event.registration_status || `${daysUntil(event.deadline)} days left`}</span>
+          <span className="text-sm font-bold text-nova-coral">{regStatus === 'Closed' ? 'Closed' : regStatus === 'Closing Soon' ? 'Closing Soon' : `${daysUntil(eventDeadline)} days left`}</span>
           <Button as={Link} to={`/events/${event.id}`} state={linkState} size="sm" variant="secondary"><Eye size={16} />View Details</Button>
         </div>
-        <Button onClick={openRegistration} size="sm" variant="accent" disabled={event.registration_status === 'Closed'}>Register</Button>
+        <Button onClick={openRegistration} size="sm" variant="accent" disabled={regStatus === 'Closed'}>Register</Button>
       </div>
     </motion.article>
   );
