@@ -36,10 +36,10 @@ export default function StudentDashboard() {
           <p className="mt-2 max-w-2xl text-nova-muted">Track participation at a glance, then use the sidebar to open dedicated student pages.</p>
         </div>
         <div className="grid gap-4 md:grid-cols-4">
-          <StatCard icon={CalendarDays} label="Total Participated Events" value="26" />
-          <StatCard icon={BookOpenCheck} label="Active Registrations" value={Math.max(registeredEvents.length, 3)} />
+          <StatCard icon={CalendarDays} label="Total Participated Events" value="0" />
+          <StatCard icon={BookOpenCheck} label="Active Registrations" value={registeredEvents.length} />
           <StatCard icon={Award} label="Achievements Earned" value={studentAchievements.length} />
-          <StatCard icon={Flame} label="Participation Streak" value="10" />
+          <StatCard icon={Flame} label="Participation Streak" value={user?.participation_streak || 0} />
         </div>
         <div className="surface rounded-lg p-6">
           <div className="grid gap-3 sm:grid-cols-3">

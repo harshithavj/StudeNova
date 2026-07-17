@@ -6,7 +6,7 @@ import BackButton from '../components/BackButton';
 import Breadcrumbs from '../components/Breadcrumbs';
 import EventCard from '../components/EventCard';
 import Button from '../components/ui/Button';
-import { sampleEvents } from '../data/mockData';
+import { useEvents } from '../hooks/useEvents';
 import { daysUntil, formatDate } from '../utils/date';
 import api from '../services/api';
 
@@ -15,6 +15,11 @@ export default function EventDetails() {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const { events: similarDbEvents } = useEvents(
+    event ? { category: event.category } : {}
+  );
+  const similarEvents = similarDbEvents.filter((item) => String(item.id) !== String(event?.id)).slice(0, 3);
 
   useEffect(() => {
     let active = true;
@@ -26,56 +31,25 @@ export default function EventDetails() {
       apiId = id.replace('db-', '');
     }
 
-    const mockFallback = sampleEvents.find((item) => String(item.id) === String(id));
-
-    if (id.startsWith('db-')) {
-      api.get(`/events/${apiId}`)
-        .then(({ data }) => {
-          if (active) {
-            setEvent({
-              ...data,
-              id: `db-${data.id}`,
-              date: data.starts_at,
-              image_url: data.poster_url || data.event_banner || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80'
-            });
-            setLoading(false);
-          }
-        })
-        .catch((err) => {
-          if (active) {
-            if (mockFallback) {
-              setEvent(mockFallback);
-            } else {
-              setError(err);
-            }
-            setLoading(false);
-          }
-        });
-    } else {
-      if (mockFallback) {
-        setEvent(mockFallback);
-        setLoading(false);
-      } else {
-        api.get(`/events/${apiId}`)
-          .then(({ data }) => {
-            if (active) {
-              setEvent({
-                ...data,
-                id: `db-${data.id}`,
-                date: data.starts_at,
-                image_url: data.poster_url || data.event_banner || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80'
-              });
-              setLoading(false);
-            }
-          })
-          .catch((err) => {
-            if (active) {
-              setError(err);
-              setLoading(false);
-            }
+    api.get(`/events/${apiId}`)
+      .then(({ data }) => {
+        if (active) {
+          setEvent({
+            ...data,
+            id: `db-${data.id}`,
+            date: data.starts_at,
+            deadline: data.registration_deadline,
+            image_url: data.poster_url || data.event_banner || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80'
           });
-      }
-    }
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setError(err);
+          setLoading(false);
+        }
+      });
 
     return () => {
       active = false;
@@ -202,10 +176,14 @@ export default function EventDetails() {
           </div>
         </aside>
       </div>
-      <div className="mt-10">
-        <h2 className="mb-4 text-2xl font-black">Similar events</h2>
-        <div className="grid gap-5 md:grid-cols-3">{sampleEvents.filter((item) => String(item.id) !== String(event.id)).slice(0, 3).map((item) => <EventCard key={item.id} event={item} />)}</div>
-      </div>
+      {similarEvents.length > 0 && (
+        <div className="mt-10">
+          <h2 className="mb-4 text-2xl font-black">Similar events</h2>
+          <div className="grid gap-5 md:grid-cols-3">
+            {similarEvents.map((item) => <EventCard key={item.id} event={item} />)}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

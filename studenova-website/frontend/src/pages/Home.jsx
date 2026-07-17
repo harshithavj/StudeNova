@@ -4,7 +4,8 @@ import { Link, Navigate } from 'react-router-dom';
 import EventCard from '../components/EventCard';
 import Button from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
-import { categories, sampleEvents } from '../data/mockData';
+import { categories } from '../data/mockData';
+import { useEvents } from '../hooks/useEvents';
 import { daysUntil } from '../utils/date';
 import { getCollegeOrganizerPath, isCollegeOrganizer } from '../utils/navigation';
 
@@ -22,6 +23,7 @@ const mockCards = [
 
 export default function Home() {
   const { user } = useAuth();
+  const { events: dbEvents, loading } = useEvents({ per_page: 6 });
 
   if (isCollegeOrganizer(user)) {
     return <Navigate to={getCollegeOrganizerPath(user)} replace />;
@@ -99,7 +101,15 @@ export default function Home() {
           </div>
           <Link to="/events" className="text-sm font-bold text-nova-coral">View all</Link>
         </div>
-        <div className="grid gap-5 md:grid-cols-3">{sampleEvents.slice(0, 3).map((event) => <EventCard key={event.id} event={event} />)}</div>
+        <div className="grid gap-5 md:grid-cols-3">
+          {loading ? (
+            <div className="col-span-full py-10 text-center text-nova-muted font-bold">Loading trending events...</div>
+          ) : dbEvents.length > 0 ? (
+            dbEvents.slice(0, 3).map((event) => <EventCard key={event.id} event={event} />)
+          ) : (
+            <div className="col-span-full py-10 text-center text-nova-muted font-bold">No events available at the moment.</div>
+          )}
+        </div>
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-4 py-12 sm:px-6 lg:grid-cols-[.8fr_1.2fr] lg:px-8">
@@ -112,16 +122,23 @@ export default function Home() {
         </div>
       </section>
 
+
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="surface rounded-lg p-6">
           <h2 className="text-2xl font-black">Upcoming deadlines</h2>
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            {sampleEvents.slice(0, 3).map((event) => (
-              <Link to={`/events/${event.id}`} key={event.id} state={{ from: '/' }} className="rounded-lg bg-white p-4 ring-1 ring-slate-200 transition hover:-translate-y-0.5">
-                <p className="font-bold">{event.title}</p>
-                <p className="mt-2 text-sm text-nova-coral">{daysUntil(event.deadline)} days until registration closes</p>
-              </Link>
-            ))}
+            {loading ? (
+              <div className="col-span-full py-10 text-center text-nova-muted font-bold">Loading deadlines...</div>
+            ) : dbEvents.length > 0 ? (
+              dbEvents.slice(0, 3).map((event) => (
+                <Link to={`/events/${event.id}`} key={event.id} state={{ from: '/' }} className="rounded-lg bg-white p-4 ring-1 ring-slate-200 transition hover:-translate-y-0.5">
+                  <p className="font-bold">{event.title}</p>
+                  <p className="mt-2 text-sm text-nova-coral">{daysUntil(event.deadline || event.registration_deadline)} days until registration closes</p>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full py-10 text-center text-nova-muted font-bold">No upcoming deadlines.</div>
+            )}
           </div>
         </div>
       </section>

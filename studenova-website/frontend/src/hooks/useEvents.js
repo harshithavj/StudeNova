@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { sampleEvents } from '../data/mockData';
 
 export function useEvents(params = {}) {
-  const [events, setEvents] = useState(sampleEvents);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -17,15 +16,16 @@ export function useEvents(params = {}) {
             ...event,
             id: `db-${event.id}`,
             date: event.starts_at,
+            deadline: event.registration_deadline,
             image_url: event.poster_url || event.event_banner || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80'
           }));
-          setEvents(dbEvents.length ? [...dbEvents, ...sampleEvents] : sampleEvents);
+          setEvents(dbEvents);
         }
       })
       .catch((err) => {
         if (active) {
           setError(err);
-          setEvents(sampleEvents); // fallback to sampleEvents on error
+          setEvents([]); // fallback to empty on error
         }
       })
       .finally(() => {

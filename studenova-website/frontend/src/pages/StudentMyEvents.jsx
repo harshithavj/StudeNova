@@ -40,12 +40,12 @@ export default function StudentMyEvents() {
   const saved = readStored('studenova_saved_events');
   const registered = readStored('studenova_student_events');
   const sections = [
-    ['Saved Events', saved.length ? saved : sampleEvents.slice(3, 5), 'Saved', 'Open'],
-    ['Registered Events', registered.length ? registered : sampleEvents.slice(0, 2), 'Registered', 'Upcoming'],
-    ['Ongoing Events', sampleEvents.slice(1, 2), 'Registered', 'Ongoing'],
-    ['Completed Events', sampleEvents.slice(2, 3), 'Completed', 'Completed'],
-    ['Waiting List Events', sampleEvents.slice(4, 5), 'Waitlisted', 'Waiting List'],
-    ['Cancelled Events', sampleEvents.slice(5, 6), 'Cancelled', 'Cancelled']
+    ['Saved Events', saved, 'Saved', 'Open'],
+    ['Registered Events', registered, 'Registered', 'Upcoming'],
+    ['Ongoing Events', [], 'Registered', 'Ongoing'],
+    ['Completed Events', [], 'Completed', 'Completed'],
+    ['Waiting List Events', [], 'Waitlisted', 'Waiting List'],
+    ['Cancelled Events', [], 'Cancelled', 'Cancelled']
   ];
 
   return (
@@ -59,7 +59,11 @@ export default function StudentMyEvents() {
           <section key={title} className="surface rounded-lg p-6">
             <h3 className="text-2xl font-black">{title}</h3>
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              {events.map((event) => <EventRow key={`${title}-${event.id}`} event={event} registrationStatus={registrationStatus} eventStatus={eventStatus} />)}
+              {events.length > 0 ? (
+                events.map((event) => <EventRow key={`${title}-${event.id}`} event={event} registrationStatus={registrationStatus} eventStatus={eventStatus} />)
+              ) : (
+                <p className="col-span-full text-sm text-nova-muted font-bold">No events found in this category.</p>
+              )}
             </div>
           </section>
         ))}

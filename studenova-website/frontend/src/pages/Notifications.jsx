@@ -1,30 +1,57 @@
-import { BellRing, Clock, Mail } from 'lucide-react';
+import { BellRing } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import BackButton from '../components/BackButton';
 import Breadcrumbs from '../components/Breadcrumbs';
-
-const notifications = [
-  { icon: BellRing, title: 'NovaHack deadline approaching', body: 'Registration closes soon. Complete your team profile.' },
-  { icon: Clock, title: 'Workshop starts tomorrow', body: 'Cloud Careers prep session begins at 11:00 AM.' },
-  { icon: Mail, title: 'Email reminder sent', body: 'A calendar invite and QR check-in token were sent to your inbox.' }
-];
+import api from '../services/api';
 
 export default function Notifications() {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/notifications')
+      .then(({ data }) => setNotifications(data.items || []))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const markRead = async (id) => {
+    try {
+      await api.patch(`/notifications/${id}/read`);
+      setNotifications((current) => current.filter((item) => item.id !== id));
+      toast.success('Marked as read');
+    } catch (error) {
+      toast.error('Unable to mark notification as read');
+    }
+  };
+
   return (
     <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <Breadcrumbs />
       <BackButton />
       <h1 className="text-4xl font-black">Notifications</h1>
       <div className="mt-6 grid gap-3">
-        {notifications.map(({ icon: Icon, title, body }) => (
-          <article key={title} className="surface flex gap-4 rounded-lg p-5">
-            <Icon className="mt-1 text-nova-coral" />
-            <div>
-              <h2 className="font-black">{title}</h2>
-              <p className="text-sm text-nova-muted">{body}</p>
-              <button className="mt-3 text-sm font-bold text-nova-coral">Mark as read</button>
-            </div>
-          </article>
-        ))}
+        {loading ? (
+          <div className="text-center py-10 text-nova-muted font-bold">Loading notifications...</div>
+        ) : notifications.length > 0 ? (
+          notifications.map((item) => (
+            <article key={item.id} className="surface flex gap-4 rounded-lg p-5">
+              <BellRing className="mt-1 text-nova-coral" />
+              <div>
+                <h2 className="font-black">{item.title}</h2>
+                <p className="text-sm text-nova-muted">{item.body}</p>
+                {!item.is_read && (
+                  <button onClick={() => markRead(item.id)} className="mt-3 text-sm font-bold text-nova-coral">
+                    Mark as read
+                  </button>
+                )}
+              </div>
+            </article>
+          ))
+        ) : (
+          <div className="text-center py-10 text-nova-muted font-bold">No new notifications.</div>
+        )}
       </div>
     </section>
   );
