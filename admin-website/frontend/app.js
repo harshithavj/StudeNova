@@ -468,9 +468,15 @@ function renderManagementList(selector, items = [], type = 'student') {
           ? `<button class="small-button approve-button" type="button" disabled>Approved</button>
             <button class="small-button" type="button" data-view-verification="${user.id}">Review Again</button>`
           : `<button class="small-button approve-button" type="button" data-view-verification="${user.id}">Review Verification</button>`) : ''}
-        <button class="small-button" type="button" data-user-action="activate" data-user-id="${user.id}">Activate</button>
-        <button class="small-button" type="button" data-user-action="suspend" data-user-id="${user.id}">Suspend</button>
-        <button class="small-button reject-button" type="button" data-user-action="ban" data-user-id="${user.id}">Ban</button>
+        ${(user.account_status || 'active') === 'active'
+          ? `<button class="small-button approve-button" type="button" disabled>Activated</button>`
+          : `<button class="small-button" type="button" data-user-action="activate" data-user-id="${user.id}">Activate</button>`}
+        ${user.account_status === 'suspended'
+          ? `<button class="small-button reject-button" type="button" disabled>Suspended</button>`
+          : `<button class="small-button" type="button" data-user-action="suspend" data-user-id="${user.id}">Suspend</button>`}
+        ${user.account_status === 'banned'
+          ? `<button class="small-button reject-button" type="button" disabled>Banned</button>`
+          : `<button class="small-button reject-button" type="button" data-user-action="ban" data-user-id="${user.id}">Ban</button>`}
       </div>
     </article>
   `).join('') : '<p class="empty-state">No users found.</p>';
