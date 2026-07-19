@@ -718,6 +718,7 @@ td:first-child {
 }
 
 .mini-row {
+  position: relative;
   display: grid;
   gap: 8px;
   border-radius: 8px;
@@ -731,6 +732,33 @@ td:first-child {
 .mini-row strong {
   color: var(--ink);
   font-size: 14px;
+  padding-right: 24px;
+}
+
+.mini-row-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 0;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  padding: 0 0 3px 0;
+}
+
+.mini-row-close:hover {
+  background: var(--coral);
+  color: #fff;
+  border-color: var(--coral);
 }
 
 .management-card p,

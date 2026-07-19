@@ -431,6 +431,7 @@ function renderEventMonitoring(groups = {}) {
   };
   container.innerHTML = Object.entries(labels).map(([key, label]) => {
     const events = groups[key] || [];
+    const isMoved = ['completed', 'cancelled', 'flagged'].includes(key);
     return `
       <article class="monitoring-card">
         <h3>${label}</h3>
@@ -440,12 +441,16 @@ function renderEventMonitoring(groups = {}) {
               <strong>${event.event_name}</strong>
               <span>${event.organizer} - ${event.category}</span>
               <span>${event.participants} participants - ${event.status} - ${formatDate(event.date)}</span>
-              <span class="row-actions">
-                <button class="small-button" type="button" data-event-action="publish" data-event-id="${event.id}">Publish</button>
-                <button class="small-button" type="button" data-event-action="complete" data-event-id="${event.id}">Complete</button>
-                <button class="small-button" type="button" data-event-action="flag" data-event-id="${event.id}">Flag</button>
-                <button class="small-button reject-button" type="button" data-event-action="cancel" data-event-id="${event.id}">Cancel</button>
-              </span>
+              ${isMoved ? `
+                <button class="mini-row-close" type="button" title="Move back to upcoming" data-event-action="publish" data-event-id="${event.id}">&times;</button>
+              ` : `
+                <span class="row-actions">
+                  <button class="small-button" type="button" data-event-action="publish" data-event-id="${event.id}">Publish</button>
+                  <button class="small-button" type="button" data-event-action="complete" data-event-id="${event.id}">Complete</button>
+                  <button class="small-button" type="button" data-event-action="flag" data-event-id="${event.id}">Flag</button>
+                  <button class="small-button reject-button" type="button" data-event-action="cancel" data-event-id="${event.id}">Cancel</button>
+                </span>
+              `}
             </div>
           `).join('') : '<p class="empty-state">No events in this queue.</p>'}
         </div>
