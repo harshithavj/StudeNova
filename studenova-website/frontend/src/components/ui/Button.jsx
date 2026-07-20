@@ -3,7 +3,8 @@ export default function Button({ as: Component = 'button', className = '', varia
     primary: 'bg-slate-950 text-white hover:-translate-y-0.5 hover:bg-slate-800',
     secondary: 'bg-white text-slate-950 ring-1 ring-slate-200 hover:-translate-y-0.5 hover:bg-slate-50',
     accent: 'bg-nova-coral text-white shadow-coral hover:-translate-y-0.5 hover:bg-[#f04f5f]',
-    subtle: 'bg-nova-peach text-nova-coral hover:-translate-y-0.5 hover:bg-nova-pink'
+    subtle: 'bg-nova-peach text-nova-coral hover:-translate-y-0.5 hover:bg-nova-pink',
+    pink: 'bg-pink-500 text-white hover:-translate-y-0.5 hover:bg-pink-600 shadow-md shadow-pink-200'
   };
   const sizes = {
     sm: 'px-3 py-2 text-sm',

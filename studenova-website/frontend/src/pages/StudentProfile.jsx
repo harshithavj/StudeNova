@@ -1,4 +1,5 @@
-import { Github, Linkedin, Save, Upload, UserRound } from 'lucide-react';
+import { useRef } from 'react';
+import { Edit, Github, Linkedin, Save, Upload, UserRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
 import StudentShell from '../components/student/StudentShell';
@@ -6,7 +7,21 @@ import { useAuth } from '../context/AuthContext';
 import { studentAchievements } from '../data/mockData';
 
 export default function StudentProfile() {
-  const { user } = useAuth();
+  const { user, updateProfile, loading } = useAuth();
+  const formRef = useRef(null);
+
+  const handleUpdateProfile = async (event) => {
+    event.preventDefault();
+    if (!formRef.current) return;
+    const formData = new FormData(formRef.current);
+    const name = formData.get('fullName');
+    const college = formData.get('collegeName');
+    try {
+      await updateProfile({ name, college });
+    } catch (error) {
+      // Error is already handled inside updateProfile with a toast
+    }
+  };
 
   return (
     <StudentShell user={user}>
@@ -26,20 +41,20 @@ export default function StudentProfile() {
                 <input type="file" className="hidden" />
               </label>
             </div>
-            <form className="grid gap-4 md:grid-cols-2" onSubmit={(event) => { event.preventDefault(); toast.success('Profile changes saved'); }}>
+            <form ref={formRef} className="grid gap-4 md:grid-cols-2" onSubmit={(event) => { event.preventDefault(); toast.success('Profile changes saved'); }}>
               {[
-                ['Full Name', user?.name || 'Student'],
-                ['College Name', user?.college || 'Global Institute of Technology'],
-                ['Department', 'Computer Science and Engineering'],
-                ['Academic Year', '3rd Year'],
-                ['Skills', 'React, Python, Machine Learning, UI Design'],
-                ['Domains of Interest', 'AI/ML, Cloud Computing, Web Development'],
-                ['Areas of Interest', 'Hackathons, internships, research programs'],
-                ['Portfolio Website', 'https://portfolio.example.com']
-              ].map(([label, value]) => (
+                ['Full Name', user?.name || 'Student', 'fullName'],
+                ['College Name', user?.college || 'Global Institute of Technology', 'collegeName'],
+                ['Department', 'Computer Science and Engineering', 'department'],
+                ['Academic Year', '3rd Year', 'academicYear'],
+                ['Skills', 'React, Python, Machine Learning, UI Design', 'skills'],
+                ['Domains of Interest', 'AI/ML, Cloud Computing, Web Development', 'domainsOfInterest'],
+                ['Areas of Interest', 'Hackathons, internships, research programs', 'areasOfInterest'],
+                ['Portfolio Website', 'https://portfolio.example.com', 'portfolioWebsite']
+              ].map(([label, value, nameAttr]) => (
                 <label key={label} className="grid gap-2 text-sm font-bold text-nova-muted">
                   {label}
-                  <input defaultValue={value} className="rounded-lg bg-white px-4 py-3 text-nova-ink ring-1 ring-slate-200" />
+                  <input name={nameAttr} defaultValue={value} className="rounded-lg bg-white px-4 py-3 text-nova-ink ring-1 ring-slate-200" />
                 </label>
               ))}
               <div className="md:col-span-2 grid gap-3 md:grid-cols-3">
@@ -51,6 +66,9 @@ export default function StudentProfile() {
                 <Button type="button" variant="secondary"><Linkedin size={16} />LinkedIn Profile</Button>
               </div>
               <Button className="md:col-span-2" variant="accent"><Save size={16} />Save Profile</Button>
+              <Button className="md:col-span-2" variant="pink" type="button" onClick={handleUpdateProfile} disabled={loading}>
+                <Edit size={16} />{loading ? 'Updating...' : 'Update Profile'}
+              </Button>
             </form>
           </div>
         </section>
