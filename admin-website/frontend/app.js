@@ -598,6 +598,14 @@ function renderAdminProfile(user) {
           Email
           <input id="profileEmail" type="email" value="${user.email || ''}" required />
         </label>
+        <label>
+          Phone Number
+          <input id="profilePhone" type="tel" value="${user.phone_number || ''}" placeholder="Phone number" />
+        </label>
+        <label>
+          Address
+          <textarea id="profileAddress" placeholder="Address">${user.address || ''}</textarea>
+        </label>
         <p class="muted">Role: ${user.role || 'admin'}</p>
         <p class="muted">Last login: ${formatDate(user.last_login_at)}</p>
         <div class="row-actions">
@@ -620,11 +628,13 @@ function renderAdminProfile(user) {
     profileMessage.textContent = '';
     const name = document.querySelector('#profileName').value.trim();
     const email = document.querySelector('#profileEmail').value.trim();
+    const phone_number = document.querySelector('#profilePhone').value.trim();
+    const address = document.querySelector('#profileAddress').value.trim();
     try {
       const updated = await request('/auth/me', {
         method: 'PATCH',
         headers: authHeaders(),
-        body: JSON.stringify({ name, email })
+        body: JSON.stringify({ name, email, phone_number, address })
       });
       localStorage.setItem(userKey, JSON.stringify(updated.user));
       profileMessage.textContent = 'Profile updated successfully';
