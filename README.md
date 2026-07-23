@@ -1,6 +1,6 @@
-# 🎓 Studenova
+# 🎓 StudeNova
 
-A comprehensive student-industry collaboration platform that connects students, colleges, industries, and administrators through a unified digital ecosystem.
+A comprehensive student-industry collaboration platform that connects students, colleges, and administrators through a unified digital ecosystem.
 
 ---
 
@@ -12,7 +12,6 @@ The platform consists of four major modules:
 
 * **Student Portal** – Access events, internships, opportunities, and career resources.
 * **College Organizer Portal** – Manage college events and student participation.
-* **Industry Organizer Portal** – Create opportunities, host events, and recruit talent.
 * **Super Admin Portal** – Monitor the entire platform, verify organizers, and manage users.
 
 ---
