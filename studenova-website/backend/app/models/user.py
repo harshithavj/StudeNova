@@ -18,6 +18,8 @@ class User(db.Model):
     company = db.Column(db.String(180))
     avatar_url = db.Column(db.Text)
     bio = db.Column(db.Text)
+    phone_number = db.Column(db.String(30))
+    address = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     last_login_at = db.Column(db.DateTime, nullable=True)
 

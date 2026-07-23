@@ -11,7 +11,14 @@ notifications_bp = Blueprint("notifications", __name__)
 @notifications_bp.get("")
 @jwt_required()
 def list_notifications():
-    items = Notification.query.filter_by(user_id=current_user().id).order_by(Notification.created_at.desc()).all()
+    from datetime import datetime
+    from sqlalchemy import or_
+    now = datetime.utcnow()
+    items = Notification.query.filter(
+        Notification.user_id == current_user().id,
+        Notification.channel == "in_app",
+        or_(Notification.scheduled_for.is_(None), Notification.scheduled_for <= now)
+    ).order_by(Notification.created_at.desc()).all()
     return jsonify({"items": notifications_schema.dump(items)})
 
 

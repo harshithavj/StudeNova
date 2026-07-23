@@ -290,6 +290,10 @@ def update_profile():
         user.company = payload["company"] or None
     if payload.get("bio") is not None:
         user.bio = payload["bio"] or None
+    if "phone_number" in payload:
+        user.phone_number = payload["phone_number"] or None
+    if "address" in payload:
+        user.address = payload["address"] or None
     db.session.commit()
     return jsonify({"user": user_schema.dump(user)})
 
@@ -395,6 +399,10 @@ def update_me():
         if User.query.filter_by(email=email.lower()).first():
             return jsonify({"message": "Email already in use"}), 409
         user.email = email.lower()
+    if "phone_number" in payload:
+        user.phone_number = payload["phone_number"] or None
+    if "address" in payload:
+        user.address = payload["address"] or None
     db.session.commit()
     return jsonify({"user": user_schema.dump(user)})
 

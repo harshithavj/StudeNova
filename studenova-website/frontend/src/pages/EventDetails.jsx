@@ -58,11 +58,28 @@ export default function EventDetails() {
 
   const markRegistered = () => {
     if (!event) return;
-    const stored = JSON.parse(localStorage.getItem('studenova_student_events') || '[]');
-    if (!stored.some((item) => item.id === event.id)) {
-      localStorage.setItem('studenova_student_events', JSON.stringify([...stored, { ...event, status: 'Registered' }]));
+
+    let apiId = event.id;
+    if (typeof apiId === 'string' && apiId.startsWith('db-')) {
+      apiId = apiId.replace('db-', '');
     }
-    toast.success('Added to My Events, calendar, and deadline alerts');
+
+    const stored = JSON.parse(localStorage.getItem('studenova_student_events') || '[]');
+
+    api.post(`/registrations/events/${apiId}/complete-external`, {
+      external_platform: 'External',
+      external_registration_url: event.registration_link || ''
+    })
+      .then(() => {
+        if (!stored.some((item) => item.id === event.id)) {
+          localStorage.setItem('studenova_student_events', JSON.stringify([...stored, { ...event, status: 'Registered' }]));
+        }
+        toast.success('Added to My Events, calendar, and deadline alerts');
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error('Failed to update registration status on the server.');
+      });
   };
 
   const openRegistration = () => {
