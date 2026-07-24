@@ -1,11 +1,19 @@
 from marshmallow import fields
 from ..extensions import ma
-from ..models import User
+from ..models import User, StudentProfile
+
+
+class StudentProfileSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = StudentProfile
+        load_instance = True
+        exclude = ("id", "user_id", "created_at", "updated_at")
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
     verificationStatus = fields.Method("get_verification_status")
     rejectionReason = fields.String(attribute="rejection_reason", dump_only=True)
+    profile = fields.Nested(StudentProfileSchema, dump_only=True)
 
     class Meta:
         model = User

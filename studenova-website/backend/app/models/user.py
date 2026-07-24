@@ -24,6 +24,7 @@ class User(db.Model):
     last_login_at = db.Column(db.DateTime, nullable=True)
 
     events = db.relationship("Event", back_populates="creator", cascade="all,delete")
+    profile = db.relationship("StudentProfile", backref="user", uselist=False, cascade="all,delete-orphan")
     registrations = db.relationship("Registration", back_populates="user", cascade="all,delete")
     bookmarks = db.relationship("Bookmark", back_populates="user", cascade="all,delete")
     notifications = db.relationship("Notification", back_populates="user", cascade="all,delete")

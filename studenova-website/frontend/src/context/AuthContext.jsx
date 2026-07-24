@@ -69,6 +69,11 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateUser = (updatedUser) => {
+    localStorage.setItem('studenova_user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   const clearSession = () => {
     localStorage.removeItem('studenova_token');
     localStorage.removeItem('studenova_user');
@@ -97,7 +102,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ user, loading, login, signup, updateProfile, logout, deleteAccount, clearSession, isAuthenticated: Boolean(user) }),
+    () => ({ user, updateUser, loading, login, signup, updateProfile, logout, deleteAccount, clearSession, isAuthenticated: Boolean(user) }),
     [user, loading]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

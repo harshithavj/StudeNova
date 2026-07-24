@@ -10,9 +10,9 @@ from flask_jwt_extended import create_access_token, jwt_required
 from marshmallow import Schema, fields, validate
 from werkzeug.utils import secure_filename
 from ...extensions import db, limiter
-from ...models import LoginHistory, OrganizerVerificationAsset, User
+from ...models import LoginHistory, OrganizerVerificationAsset, User, StudentProfile
 from ...schemas import user_schema
-from ...services.storage import upload_organizer_verification
+from ...services.storage import upload_organizer_verification, upload_file
 from ...utils.auth import current_user
 
 auth_bp = Blueprint("auth", __name__)
@@ -180,6 +180,9 @@ def signup():
     db.session.add(user)
     db.session.flush()
 
+    if normalized_role == "student":
+        db.session.add(StudentProfile(user_id=user.id))
+
     if normalized_role in ["college_organizer", "industry_organizer"]:
         try:
             verification_files = COLLEGE_VERIFICATION_FILES if normalized_role == "college_organizer" else INDUSTRY_VERIFICATION_FILES
@@ -264,6 +267,8 @@ def login():
     login_time = datetime.utcnow()
     user.last_login_at = login_time
     db.session.add(LoginHistory(user_id=user.id, occurred_at=login_time))
+    if user.role == "student" and not user.profile:
+        db.session.add(StudentProfile(user_id=user.id))
     db.session.commit()
     token = create_access_token(identity=str(user.id), additional_claims={"role": user.role, "verification_status": user.verification_status})
     return jsonify({"access_token": token, "user": user_schema.dump(user)})
@@ -294,6 +299,33 @@ def update_profile():
         user.phone_number = payload["phone_number"] or None
     if "address" in payload:
         user.address = payload["address"] or None
+
+    if user.role == "student":
+        if not user.profile:
+            user.profile = StudentProfile(user_id=user.id)
+            db.session.add(user.profile)
+        
+        profile_data = payload.get("profile")
+        if profile_data and isinstance(profile_data, dict):
+            if "department" in profile_data:
+                user.profile.department = profile_data["department"] or None
+            if "academic_year" in profile_data:
+                user.profile.academic_year = profile_data["academic_year"] or None
+            if "skills" in profile_data:
+                user.profile.skills = profile_data["skills"] or []
+            if "domains" in profile_data:
+                user.profile.domains = profile_data["domains"] or []
+            if "interests" in profile_data:
+                user.profile.interests = profile_data["interests"] or []
+            if "portfolio_url" in profile_data:
+                user.profile.portfolio_url = profile_data["portfolio_url"] or None
+            if "github_url" in profile_data:
+                user.profile.github_url = profile_data["github_url"] or None
+            if "linkedin_url" in profile_data:
+                user.profile.linkedin_url = profile_data["linkedin_url"] or None
+            if "resume_url" in profile_data:
+                user.profile.resume_url = profile_data["resume_url"] or None
+
     db.session.commit()
     return jsonify({"user": user_schema.dump(user)})
 
@@ -381,7 +413,11 @@ def reset_password():
 @auth_bp.get("/me")
 @jwt_required()
 def me():
-    return jsonify({"user": user_schema.dump(current_user())})
+    user = current_user()
+    if user and user.role == "student" and not user.profile:
+        db.session.add(StudentProfile(user_id=user.id))
+        db.session.commit()
+    return jsonify({"user": user_schema.dump(user)})
 
 
 @auth_bp.patch("/me")
@@ -403,6 +439,33 @@ def update_me():
         user.phone_number = payload["phone_number"] or None
     if "address" in payload:
         user.address = payload["address"] or None
+    
+    if user.role == "student":
+        if not user.profile:
+            user.profile = StudentProfile(user_id=user.id)
+            db.session.add(user.profile)
+        
+        profile_data = payload.get("profile")
+        if profile_data and isinstance(profile_data, dict):
+            if "department" in profile_data:
+                user.profile.department = profile_data["department"] or None
+            if "academic_year" in profile_data:
+                user.profile.academic_year = profile_data["academic_year"] or None
+            if "skills" in profile_data:
+                user.profile.skills = profile_data["skills"] or []
+            if "domains" in profile_data:
+                user.profile.domains = profile_data["domains"] or []
+            if "interests" in profile_data:
+                user.profile.interests = profile_data["interests"] or []
+            if "portfolio_url" in profile_data:
+                user.profile.portfolio_url = profile_data["portfolio_url"] or None
+            if "github_url" in profile_data:
+                user.profile.github_url = profile_data["github_url"] or None
+            if "linkedin_url" in profile_data:
+                user.profile.linkedin_url = profile_data["linkedin_url"] or None
+            if "resume_url" in profile_data:
+                user.profile.resume_url = profile_data["resume_url"] or None
+
     db.session.commit()
     return jsonify({"user": user_schema.dump(user)})
 
@@ -421,3 +484,29 @@ def change_password():
     user.set_password(new)
     db.session.commit()
     return jsonify({"message": "Password updated successfully"})
+
+
+@auth_bp.post("/profile/resume")
+@jwt_required()
+def upload_resume():
+    user = current_user()
+    if not user or user.role != "student":
+        return jsonify({"message": "Invalid user or user is not a student"}), 401
+    
+    file = request.files.get("resume")
+    if not file:
+        return jsonify({"message": "Missing resume file"}), 400
+        
+    if not user.profile:
+        user.profile = StudentProfile(user_id=user.id)
+        db.session.add(user.profile)
+        db.session.commit()
+        
+    filename = secure_filename(file.filename)
+    path = f"{user.id}/{int(time.time())}-{filename}"
+    resume_url = upload_file(file, path, "resumes")
+    
+    user.profile.resume_url = resume_url
+    db.session.commit()
+    
+    return jsonify({"resume_url": resume_url, "user": user_schema.dump(user)})
