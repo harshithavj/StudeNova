@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Edit, Github, Linkedin, Save, Upload, UserRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
@@ -7,9 +7,70 @@ import { useAuth } from '../context/AuthContext';
 import { studentAchievements } from '../data/mockData';
 import api from '../services/api';
 
+const ENGINEERING_DOMAINS = {
+  'Computer Science & IT': ['Python', 'Java', 'C++', 'JavaScript', 'React', 'Node.js', 'SQL', 'MongoDB', 'Git & GitHub', 'Cloud Computing', 'Cybersecurity', 'Data Structures & Algorithms'],
+  'Artificial Intelligence & Data Science': ['Python', 'Machine Learning', 'Deep Learning', 'Data Analysis', 'Data Visualization', 'TensorFlow', 'PyTorch', 'Natural Language Processing', 'Computer Vision', 'SQL'],
+  'Electronics & Communication': ['Embedded Systems', 'Arduino', 'Raspberry Pi', 'VLSI Design', 'Verilog', 'MATLAB', 'PCB Design', 'IoT', 'Signal Processing', 'Communication Systems'],
+  'Electrical Engineering': ['Circuit Design', 'Power Systems', 'MATLAB', 'PLC Programming', 'Control Systems', 'Electrical Machines', 'Renewable Energy Systems', 'AutoCAD Electrical'],
+  'Mechanical Engineering': ['AutoCAD', 'SolidWorks', 'CATIA', 'ANSYS', 'Finite Element Analysis', 'CAD/CAM', 'Thermodynamics', 'Manufacturing Processes', '3D Printing'],
+  'Civil Engineering': ['AutoCAD', 'STAAD.Pro', 'Revit', 'ETABS', 'Surveying', 'Structural Analysis', 'Construction Management', 'Building Information Modeling'],
+  'Chemical Engineering': ['Aspen HYSYS', 'MATLAB', 'Process Simulation', 'Process Control', 'Chemical Process Design', 'Heat Transfer', 'Mass Transfer'],
+  'Biomedical Engineering': ['MATLAB', 'Medical Imaging', 'Bioinstrumentation', 'Biomedical Signal Processing', 'CAD', 'Biomaterials', 'Python'],
+  'Aerospace Engineering': ['CATIA', 'ANSYS', 'MATLAB', 'Aerodynamics', 'Flight Mechanics', 'CAD', 'Computational Fluid Dynamics'],
+  'Industrial Engineering': ['AutoCAD', 'SolidWorks', 'Operations Research', 'Supply Chain Management', 'Quality Control', 'Lean Manufacturing', 'Data Analysis']
+};
+
+function MultiSelect({ label, options, value, onChange, placeholder, disabled = false }) {
+  const toggleOption = (option) => {
+    onChange(value.includes(option) ? value.filter((item) => item !== option) : [...value, option]);
+  };
+
+  return (
+    <label className="grid gap-2 text-sm font-bold text-nova-muted">
+      {label}
+      <details className={`group relative ${disabled ? 'pointer-events-none opacity-60' : ''}`}>
+        <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-lg bg-white px-4 py-3 text-nova-ink ring-1 ring-slate-200 marker:content-none">
+          <span className={value.length ? 'truncate pr-2' : 'text-slate-400'} title={value.join(', ')}>
+            {value.length ? value.join(', ') : placeholder}
+          </span>
+          <span className="ml-3 text-xs transition group-open:rotate-180">▼</span>
+        </summary>
+        <div className="absolute z-20 mt-2 max-h-56 w-full overflow-y-auto rounded-lg bg-white p-2 shadow-lg ring-1 ring-slate-200">
+          {options.map((option) => (
+            <label key={option} className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-nova-ink hover:bg-slate-50">
+              <input
+                type="checkbox"
+                checked={value.includes(option)}
+                onChange={() => toggleOption(option)}
+                className="h-4 w-4 accent-nova-coral"
+              />
+              {option}
+            </label>
+          ))}
+        </div>
+      </details>
+    </label>
+  );
+}
+
 export default function StudentProfile() {
   const { user, updateUser, updateProfile, loading } = useAuth();
   const formRef = useRef(null);
+  const [domains, setDomains] = useState([]);
+  const [skills, setSkills] = useState([]);
+
+  useEffect(() => {
+    setDomains(user?.profile?.domains || []);
+    setSkills(user?.profile?.skills || []);
+  }, [user]);
+
+  const availableSkills = [...new Set(domains.flatMap((domain) => ENGINEERING_DOMAINS[domain] || []))].sort();
+
+  const handleDomainChange = (selectedDomains) => {
+    setDomains(selectedDomains);
+    const selectedDomainSkills = new Set(selectedDomains.flatMap((domain) => ENGINEERING_DOMAINS[domain] || []));
+    setSkills((currentSkills) => currentSkills.filter((skill) => selectedDomainSkills.has(skill)));
+  };
 
   const handleUpdateProfile = async (event) => {
     event.preventDefault();
@@ -21,9 +82,6 @@ export default function StudentProfile() {
     const address = formData.get('address');
     const department = formData.get('department');
     const academic_year = formData.get('academicYear');
-    const skills = formData.get('skills')?.split(',').map(s => s.trim()).filter(Boolean) || [];
-    const domains = formData.get('domainsOfInterest')?.split(',').map(s => s.trim()).filter(Boolean) || [];
-    const interests = formData.get('areasOfInterest')?.split(',').map(s => s.trim()).filter(Boolean) || [];
     const portfolio_url = formData.get('portfolioWebsite');
     const github_url = formData.get('githubUrl');
     const linkedin_url = formData.get('linkedinUrl');
@@ -40,7 +98,7 @@ export default function StudentProfile() {
           academic_year,
           skills,
           domains,
-          interests,
+          interests: [],
           portfolio_url,
           github_url,
           linkedin_url
@@ -126,17 +184,36 @@ export default function StudentProfile() {
             <form ref={formRef} className="grid gap-4 md:grid-cols-2" onSubmit={handleUpdateProfile}>
               {[
                 ['Full Name', user?.name || '', 'fullName'],
-                ['Phone Number (Optional)', user?.phone_number || '', 'phoneNumber'],
-                ['Address (Optional)', user?.address || '', 'address'],
+                ['Phone Number', user?.phone_number || '', 'phoneNumber'],
+                ['Address', user?.address || '', 'address'],
                 ['College Name', user?.college || '', 'collegeName'],
                 ['Department', user?.profile?.department || '', 'department'],
-                ['Academic Year', user?.profile?.academic_year || '', 'academicYear'],
-                ['Skills (Comma-separated)', user?.profile?.skills?.join(', ') || '', 'skills'],
-                ['Domains of Interest (Comma-separated)', user?.profile?.domains?.join(', ') || '', 'domainsOfInterest'],
-                ['Areas of Interest (Comma-separated)', user?.profile?.interests?.join(', ') || '', 'areasOfInterest'],
-                ['Portfolio Website (Optional)', user?.profile?.portfolio_url || '', 'portfolioWebsite'],
-                ['GitHub Profile URL (Optional)', user?.profile?.github_url || '', 'githubUrl'],
-                ['LinkedIn Profile URL (Optional)', user?.profile?.linkedin_url || '', 'linkedinUrl']
+                ['Academic Year', user?.profile?.academic_year || '', 'academicYear']
+              ].map(([label, value, nameAttr]) => (
+                <label key={label} className="grid gap-2 text-sm font-bold text-nova-muted">
+                  {label}
+                  <input name={nameAttr} defaultValue={value} className="rounded-lg bg-white px-4 py-3 text-nova-ink ring-1 ring-slate-200" />
+                </label>
+              ))}
+              <MultiSelect
+                label="Domains of Interest"
+                options={Object.keys(ENGINEERING_DOMAINS)}
+                value={domains}
+                onChange={handleDomainChange}
+                placeholder="Select one or more domains"
+              />
+              <MultiSelect
+                label="Skills"
+                options={availableSkills}
+                value={skills}
+                onChange={setSkills}
+                placeholder={domains.length ? 'Select one or more skills' : 'Select domains first'}
+                disabled={!domains.length}
+              />
+              {[
+                ['Portfolio Website', user?.profile?.portfolio_url || '', 'portfolioWebsite'],
+                ['GitHub Profile URL', user?.profile?.github_url || '', 'githubUrl'],
+                ['LinkedIn Profile URL', user?.profile?.linkedin_url || '', 'linkedinUrl']
               ].map(([label, value, nameAttr]) => (
                 <label key={label} className="grid gap-2 text-sm font-bold text-nova-muted">
                   {label}
