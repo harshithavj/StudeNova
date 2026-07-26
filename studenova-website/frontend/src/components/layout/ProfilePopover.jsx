@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Pencil, ChevronRight, Trophy, Star } from 'lucide-react';
+import { LogOut, Pencil, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProfilePopover({ isOpen, onClose, className = "" }) {
@@ -117,34 +117,6 @@ export default function ProfilePopover({ isOpen, onClose, className = "" }) {
       <div className="mt-3">
         <h3 className="text-xl font-bold text-slate-800">{user.name}</h3>
         <p className="text-xs font-medium text-slate-400 mt-0.5 break-all">{user.email}</p>
-      </div>
-
-      {/* Statistics Block */}
-      <div className="mt-4 rounded-[20px] border border-slate-100 bg-slate-50/50 p-4">
-        {/* Global Rank Row */}
-        <div className="flex items-center justify-between py-1">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-              <Trophy size={18} />
-            </div>
-            <span className="text-sm font-semibold text-slate-700">Event Participated</span>
-          </div>
-          <span className="text-sm font-bold text-slate-800">26</span>
-        </div>
-
-        {/* Divider */}
-        <hr className="my-2 border-slate-100" />
-
-        {/* Points Row */}
-        <div className="flex items-center justify-between py-1">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
-              <Star size={18} fill="currentColor" />
-            </div>
-            <span className="text-sm font-semibold text-slate-700">Event Won</span>
-          </div>
-          <span className="text-sm font-bold text-slate-800">3</span>
-        </div>
       </div>
 
       {/* Logout Action */}

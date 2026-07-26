@@ -82,10 +82,21 @@ export default function EventDetails() {
       });
   };
 
-  const openRegistration = () => {
+  const openRegistration = async () => {
     if (!event) return;
+    let apiId = event.id;
+    if (typeof apiId === 'string' && apiId.startsWith('db-')) {
+      apiId = apiId.replace('db-', '');
+    }
+
     window.open(event.registration_link || '#', '_blank', 'noopener,noreferrer');
-    toast('Registration opens on the original event platform.');
+    try {
+      await api.post(`/bookmarks/events/${apiId}`);
+      toast.success('Registration opened and deadline alerts are enabled.');
+    } catch (error) {
+      console.error(error);
+      toast('Registration opens on the original event platform. Sign in to receive deadline alerts.');
+    }
   };
 
   if (loading) {

@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required
 from ...extensions import db
 from ...models import Notification
 from ...schemas import notification_schema, notifications_schema
+from ...services.notifications import create_closed_event_notifications, schedule_tracked_event_reminders
 from ...utils.auth import current_user
 
 notifications_bp = Blueprint("notifications", __name__)
@@ -14,6 +15,9 @@ def list_notifications():
     from datetime import datetime
     from sqlalchemy import or_
     now = datetime.utcnow()
+    schedule_tracked_event_reminders(current_user().id, now)
+    create_closed_event_notifications(current_user().id, now)
+    db.session.commit()
     items = Notification.query.filter(
         Notification.user_id == current_user().id,
         Notification.channel == "in_app",
