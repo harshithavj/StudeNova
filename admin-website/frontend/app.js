@@ -131,10 +131,11 @@ function authHeaders() {
 }
 
 async function request(path, options = {}) {
+  const isFormData = options.body instanceof FormData;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(options.headers || {})
     }
   });
@@ -590,6 +591,16 @@ function renderAdminProfile(user) {
     <article class="settings-card admin-profile">
       <h3>Profile Settings</h3>
       <form id="adminProfileForm" class="profile-form">
+        <div class="profile-photo-field">
+          <div class="profile-avatar" id="profileAvatarPreview" aria-label="Profile photo preview">
+            ${user.avatar_url ? `<img src="${user.avatar_url}" alt="Current profile photo" />` : `<span>${(user.name || 'A').trim().charAt(0).toUpperCase()}</span>`}
+          </div>
+          <label class="photo-upload-label" for="profilePhoto">
+            <span>Profile Photo</span>
+            <input id="profilePhoto" type="file" accept="image/png,image/jpeg,image/webp" />
+            <small>Optional · JPG, PNG, or WebP · up to 3 MB</small>
+          </label>
+        </div>
         <label>
           Name
           <input id="profileName" type="text" value="${user.name || ''}" required />
@@ -609,7 +620,7 @@ function renderAdminProfile(user) {
         <p class="muted">Role: ${user.role || 'admin'}</p>
         <p class="muted">Last login: ${formatDate(user.last_login_at)}</p>
         <div class="row-actions">
-          <button class="dark-button" type="submit" id="saveProfileBtn">Save</button>
+          <button class="dark-button" type="submit" id="saveProfileBtn">Update Profile</button>
           <button class="small-button" type="button" id="changePasswordBtn">Change Password</button>
           <button class="small-button reject-button" type="button" id="profileLogoutBtn">Sign Out</button>
         </div>
@@ -622,6 +633,20 @@ function renderAdminProfile(user) {
 
   const profileForm = document.querySelector('#adminProfileForm');
   const profileMessage = document.querySelector('#profileMessage');
+  const photoInput = document.querySelector('#profilePhoto');
+  const avatarPreview = document.querySelector('#profileAvatarPreview');
+
+  photoInput?.addEventListener('change', () => {
+    const [file] = photoInput.files;
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      photoInput.value = '';
+      profileMessage.textContent = 'Profile photo must be 3 MB or smaller.';
+      return;
+    }
+    const previewUrl = URL.createObjectURL(file);
+    avatarPreview.innerHTML = `<img src="${previewUrl}" alt="Selected profile photo" />`;
+  });
 
   profileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -631,11 +656,21 @@ function renderAdminProfile(user) {
     const phone_number = document.querySelector('#profilePhone').value.trim();
     const address = document.querySelector('#profileAddress').value.trim();
     try {
-      const updated = await request('/auth/me', {
+      let updated = await request('/auth/me', {
         method: 'PATCH',
         headers: authHeaders(),
         body: JSON.stringify({ name, email, phone_number, address })
       });
+      const [photo] = photoInput.files;
+      if (photo) {
+        const formData = new FormData();
+        formData.append('photo', photo);
+        updated = await request('/auth/me/avatar', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: formData
+        });
+      }
       localStorage.setItem(userKey, JSON.stringify(updated.user));
       profileMessage.textContent = 'Profile updated successfully';
     } catch (err) {
