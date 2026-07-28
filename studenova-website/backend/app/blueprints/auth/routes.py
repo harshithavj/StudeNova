@@ -21,6 +21,9 @@ OTP_TTL_SECONDS = 900  # 15 minutes to account for email delivery delays
 MAX_VERIFICATION_FILE_SIZE = 3 * 1024 * 1024
 ALLOWED_VERIFICATION_CONTENT_TYPES = {"application/pdf", "image/jpeg", "image/png", "image/webp"}
 ALLOWED_VERIFICATION_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp"}
+ALLOWED_AVATAR_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
+ALLOWED_AVATAR_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+MAX_AVATAR_FILE_SIZE = 3 * 1024 * 1024
 COLLEGE_VERIFICATION_FILES = {
     "collegeIdProof": "college_id_proof",
     "clubMembershipProof": "club_membership_proof",
@@ -75,6 +78,18 @@ def is_allowed_verification_size(file_storage):
     size = file_storage.stream.tell()
     file_storage.stream.seek(position)
     return size < MAX_VERIFICATION_FILE_SIZE
+
+
+def is_allowed_avatar(file_storage):
+    filename = file_storage.filename or ""
+    extension = f".{filename.rsplit('.', 1)[-1].lower()}" if "." in filename else ""
+    if file_storage.content_type not in ALLOWED_AVATAR_CONTENT_TYPES or extension not in ALLOWED_AVATAR_EXTENSIONS:
+        return False
+    position = file_storage.stream.tell()
+    file_storage.stream.seek(0, 2)
+    size = file_storage.stream.tell()
+    file_storage.stream.seek(position)
+    return size <= MAX_AVATAR_FILE_SIZE
 
 
 def validate_college_organizer_files(files):
@@ -467,6 +482,35 @@ def update_me():
                 user.profile.resume_url = profile_data["resume_url"] or None
 
     db.session.commit()
+    return jsonify({"user": user_schema.dump(user)})
+
+
+@auth_bp.post("/me/avatar")
+@jwt_required()
+def upload_avatar():
+    user = current_user()
+    if not user:
+        return jsonify({"message": "Invalid user"}), 401
+
+    photo = request.files.get("photo")
+    if not photo or not photo.filename:
+        return jsonify({"message": "Choose a profile photo to upload"}), 400
+    if not is_allowed_avatar(photo):
+        return jsonify({"message": "Profile photo must be a JPG, PNG, or WebP image up to 3 MB"}), 400
+
+    filename = secure_filename(photo.filename)
+    path = f"{user.id}/{int(time.time())}-{filename}"
+    try:
+        user.avatar_url = upload_file(photo, path, current_app.config["SUPABASE_AVATAR_BUCKET"])
+        db.session.commit()
+    except RuntimeError as error:
+        db.session.rollback()
+        return jsonify({"message": str(error)}), 503
+    except Exception:
+        current_app.logger.exception("Failed to upload profile photo")
+        db.session.rollback()
+        return jsonify({"message": "Unable to upload profile photo"}), 503
+
     return jsonify({"user": user_schema.dump(user)})
 
 
