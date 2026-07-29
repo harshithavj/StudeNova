@@ -1,4 +1,4 @@
-import { BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useEffect, useMemo, useState } from 'react';
 import { Bell, CalendarDays, ClipboardList, LayoutGrid, LogOut, UsersRound } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -7,22 +7,7 @@ import EventManagement from './EventManagement';
 import Registrations from './Registrations';
 import NotificationsPage from './NotificationsPage';
 import ProfilePage from './ProfilePage';
-
-const summaryCards = [
-  { label: 'Total Events', value: '12', icon: ClipboardList },
-  { label: 'Upcoming Events', value: '5', icon: CalendarDays },
-  { label: 'Total Registrations', value: '320', icon: UsersRound },
-  { label: 'Total Event Views', value: '8.4k', icon: LayoutGrid }
-];
-
-const trendData = [
-  { name: 'Jan', registrations: 40 },
-  { name: 'Feb', registrations: 54 },
-  { name: 'Mar', registrations: 62 },
-  { name: 'Apr', registrations: 78 },
-  { name: 'May', registrations: 95 },
-  { name: 'Jun', registrations: 110 }
-];
+import api from '../../services/api';
 
 const navItems = [
   { to: '/college/dashboard', label: 'Dashboard', end: true },
@@ -35,11 +20,39 @@ const navItems = [
 export default function CollegeDashboard() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [events, setEvents] = useState([]);
+  const [loadingStats, setLoadingStats] = useState(true);
   const isRoot = location.pathname === '/college/dashboard';
   const isEventsView = location.pathname.startsWith('/college/events');
   const isRegistrationsView = location.pathname === '/college/registrations';
   const isNotificationsView = location.pathname === '/college/notifications';
   const isProfileView = location.pathname === '/college/profile';
+
+  useEffect(() => {
+    const loadDashboardEvents = async () => {
+      try {
+        const { data } = await api.get('/events/mine');
+        setEvents(data.items || []);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    loadDashboardEvents();
+  }, []);
+
+  const summaryCards = useMemo(() => {
+    const now = new Date();
+    const registrations = events.reduce((total, event) => total + (event.registrations_count || 0), 0);
+    const views = events.reduce((total, event) => total + Math.round(event.popularity_score || 0), 0);
+
+    return [
+      { label: 'Total Events', value: events.length, icon: ClipboardList },
+      { label: 'Upcoming Events', value: events.filter((event) => new Date(event.starts_at) > now).length, icon: CalendarDays },
+      { label: 'Total Registrations', value: registrations, icon: UsersRound },
+      { label: 'Total Event Views', value: views, icon: LayoutGrid }
+    ];
+  }, [events]);
 
   return (
     <div className="min-h-[80vh] bg-slate-50">
@@ -72,7 +85,7 @@ export default function CollegeDashboard() {
               <h1 className="mt-2 text-3xl font-black text-slate-900">Welcome back, {user?.name || 'Organizer'}</h1>
             </div>
             <div className="inline-flex items-center gap-2 rounded-full bg-nova-peach px-4 py-2 text-sm font-semibold text-nova-coral">
-              <Bell size={16} /> 3 new notifications
+              <Bell size={16} /> 0 new notifications
             </div>
           </div>
           {isRoot ? (
@@ -81,7 +94,7 @@ export default function CollegeDashboard() {
                 {summaryCards.map(({ label, value, icon: Icon }) => (
                   <div key={label} className="surface rounded-2xl p-5">
                     <Icon className="text-nova-coral" size={20} />
-                    <p className="mt-4 text-3xl font-black text-slate-900">{value}</p>
+                    <p className="mt-4 text-3xl font-black text-slate-900">{loadingStats ? '—' : value}</p>
                     <p className="mt-1 text-sm text-nova-muted">{label}</p>
                   </div>
                 ))}
@@ -91,29 +104,17 @@ export default function CollegeDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="text-xl font-black text-slate-900">Registration trends</h2>
-                      <p className="text-sm text-nova-muted">Performance overview for the last 6 months</p>
+                      <p className="text-sm text-nova-muted">Registration trend data will appear here as it becomes available.</p>
                     </div>
                   </div>
-                  <div className="mt-6 h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={trendData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,.25)" />
-                        <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
-                        <YAxis stroke="#64748b" fontSize={12} />
-                        <Tooltip />
-                        <Bar dataKey="registrations" fill="#FF5F6D" radius={[8, 8, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="mt-6 grid h-72 place-items-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-nova-muted">
+                    No registration trend data yet.
                   </div>
                 </div>
                 <div className="surface rounded-2xl p-6">
                   <h2 className="text-xl font-black text-slate-900">Recent activities</h2>
-                  <div className="mt-6 space-y-4">
-                    {['Event “HackSprint” approved', '3 new registrations for Innovation Summit', 'Reminder sent for Tech Meetup'].map((item) => (
-                      <div key={item} className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-nova-muted">
-                        {item}
-                      </div>
-                    ))}
+                  <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-nova-muted">
+                    No recent activity yet.
                   </div>
                 </div>
               </div>

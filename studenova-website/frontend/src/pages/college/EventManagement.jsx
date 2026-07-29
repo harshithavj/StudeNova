@@ -17,7 +17,7 @@ const initialForm = {
   college: '',
   conducting_organization: '',
   eligibility: eligibilityOptions[1],
-  team_size: 'Individual',
+  team_size: '1',
   prize_pool: '',
   seats_available: '',
   registration_link: '',
@@ -251,7 +251,9 @@ export default function EventManagement() {
             </label>
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
               Team size
-              <input value={form.team_size} onChange={(event) => updateField('team_size', event.target.value)} className="rounded-lg border border-slate-200 px-3 py-2 font-normal outline-none focus:border-nova-coral" />
+              <select value={form.team_size} onChange={(event) => updateField('team_size', event.target.value)} className="rounded-lg border border-slate-200 px-3 py-2 font-normal outline-none focus:border-nova-coral">
+                {[1, 2, 3, 4].map((size) => <option key={size} value={size}>{size}</option>)}
+              </select>
             </label>
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
               Prize pool
