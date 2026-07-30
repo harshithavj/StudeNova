@@ -8,9 +8,9 @@ A comprehensive student-industry collaboration platform that connects students, 
 
 Studenova is designed to bridge the gap between academia and industry by providing a centralized platform for students to discover opportunities, participate in events, showcase skills, and connect with industry professionals.
 
-The platform consists of four major modules:
+The platform consists of three major modules:
 
-* **Student Portal** – Access events, internships, opportunities, and career resources.
+* **Student Portal** – Access event, opportunities, and career resources.
 * **College Organizer Portal** – Manage college events and student participation.
 * **Super Admin Portal** – Monitor the entire platform, verify organizers, and manage users.
 
