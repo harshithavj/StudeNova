@@ -5,6 +5,9 @@ from ..models import Registration
 
 class RegistrationSchema(ma.SQLAlchemyAutoSchema):
     event_title = fields.String(attribute="event.title", dump_only=True)
+    student_name = fields.String(attribute="user.name", dump_only=True)
+    student_email = fields.String(attribute="user.email", dump_only=True)
+    student_college = fields.String(attribute="user.college", dump_only=True)
 
     class Meta:
         model = Registration
