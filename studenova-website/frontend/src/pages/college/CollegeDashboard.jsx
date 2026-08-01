@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Bell, CalendarDays, ClipboardList, LayoutGrid, LogOut, UsersRound } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
 import CollegeHome from './CollegeHome';
 import EventManagement from './EventManagement';
@@ -8,6 +9,7 @@ import Registrations from './Registrations';
 import NotificationsPage from './NotificationsPage';
 import ProfilePage from './ProfilePage';
 import api from '../../services/api';
+import { formatDate } from '../../utils/date';
 
 const navItems = [
   { to: '/college/dashboard', label: 'Dashboard', end: true },
@@ -21,7 +23,9 @@ export default function CollegeDashboard() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [events, setEvents] = useState([]);
+  const [analytics, setAnalytics] = useState({ registration_trends: [], recent_activity: [] });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [analyticsError, setAnalyticsError] = useState('');
   const isRoot = location.pathname === '/college/dashboard';
   const isEventsView = location.pathname.startsWith('/college/events');
   const isRegistrationsView = location.pathname === '/college/registrations';
@@ -29,16 +33,26 @@ export default function CollegeDashboard() {
   const isProfileView = location.pathname === '/college/profile';
 
   useEffect(() => {
-    const loadDashboardEvents = async () => {
+    const loadDashboard = async () => {
       try {
-        const { data } = await api.get('/events/mine');
-        setEvents(data.items || []);
+        const [eventsResponse, analyticsResponse] = await Promise.all([
+          api.get('/events/mine'),
+          api.get('/analytics/overview')
+        ]);
+        setEvents(eventsResponse.data.items || []);
+        setAnalytics({
+          registration_trends: analyticsResponse.data.registration_trends || [],
+          recent_activity: analyticsResponse.data.recent_activity || []
+        });
+        setAnalyticsError('');
+      } catch (error) {
+        setAnalyticsError(error.response?.data?.message || 'Unable to fetch dashboard updates right now.');
       } finally {
         setLoadingStats(false);
       }
     };
 
-    loadDashboardEvents();
+    loadDashboard();
   }, []);
 
   const summaryCards = useMemo(() => {
@@ -108,13 +122,50 @@ export default function CollegeDashboard() {
                     </div>
                   </div>
                   <div className="mt-6 grid h-72 place-items-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-nova-muted">
-                    No registration trend data yet.
+                    {loadingStats ? (
+                      'Loading registration trends...'
+                    ) : analyticsError ? (
+                      analyticsError
+                    ) : analytics.registration_trends.length ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={analytics.registration_trends} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#dbe3ef" />
+                          <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 12 }} tickLine={false} axisLine={false} />
+                          <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 12 }} tickLine={false} axisLine={false} />
+                          <Tooltip cursor={{ fill: '#f8fafc' }} />
+                          <Bar dataKey="registrations" fill="#f9735b" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      'No registration trend data yet.'
+                    )}
                   </div>
                 </div>
                 <div className="surface rounded-2xl p-6">
                   <h2 className="text-xl font-black text-slate-900">Recent activities</h2>
-                  <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-nova-muted">
-                    No recent activity yet.
+                  <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-nova-muted">
+                    {loadingStats ? (
+                      <p className="py-2 text-center">Loading recent activity...</p>
+                    ) : analyticsError ? (
+                      <p className="py-2 text-center">{analyticsError}</p>
+                    ) : analytics.recent_activity.length ? (
+                      <div className="grid gap-3">
+                        {analytics.recent_activity.map((item) => (
+                          <div key={item.id} className="rounded-lg bg-white p-3 text-left shadow-sm">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-xs font-bold uppercase text-nova-coral">{item.type}</p>
+                                <p className="mt-1 font-semibold text-slate-900">{item.title}</p>
+                                <p className="mt-1 text-xs text-nova-muted">{item.detail}</p>
+                              </div>
+                              <p className="shrink-0 text-xs text-slate-400">{formatDate(item.occurred_at)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="py-2 text-center">No recent activity yet.</p>
+                    )}
                   </div>
                 </div>
               </div>

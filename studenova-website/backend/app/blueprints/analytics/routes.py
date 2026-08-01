@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
@@ -131,6 +132,8 @@ def build_event_monitoring():
 @roles_required("college_organizer", "industry_organizer")
 def overview():
     user = current_user()
+    events = Event.query.filter_by(creator_id=user.id).order_by(Event.created_at.desc()).all()
+    event_ids = [event.id for event in events]
     registrations = (
         Registration.query.join(Event)
         .filter(Event.creator_id == user.id)
@@ -138,10 +141,68 @@ def overview():
         .group_by(Event.category)
         .all()
     )
-    events_count = Event.query.filter_by(creator_id=user.id).count()
+    registration_rows = (
+        Registration.query.join(Event)
+        .filter(Event.creator_id == user.id)
+        .order_by(Registration.created_at.desc())
+        .all()
+    )
+    monthly_registrations = defaultdict(int)
+    for registration in registration_rows:
+        monthly_registrations[registration.created_at.strftime("%Y-%m")] += 1
+
+    registration_trends = [
+        {
+            "month": datetime.strptime(month, "%Y-%m").strftime("%b %Y"),
+            "registrations": count,
+        }
+        for month, count in sorted(monthly_registrations.items())[-6:]
+    ]
+
+    recent_activity = []
+    for registration in registration_rows[:10]:
+        recent_activity.append({
+            "id": f"registration-{registration.id}",
+            "type": "Registration",
+            "title": registration.event.title if registration.event else "Event registration",
+            "detail": f"{registration.user.name} registered" if registration.user else "Student registered",
+            "occurred_at": serialize_datetime(registration.created_at),
+        })
+    for event in events[:10]:
+        recent_activity.append({
+            "id": f"event-{event.id}",
+            "type": "Event",
+            "title": event.title,
+            "detail": f"{event.status.title()} event created",
+            "occurred_at": serialize_datetime(event.created_at),
+        })
+    if event_ids:
+        for notification in (
+            Notification.query
+            .filter(Notification.event_id.in_(event_ids))
+            .order_by(Notification.created_at.desc())
+            .limit(10)
+            .all()
+        ):
+            recent_activity.append({
+                "id": f"notification-{notification.id}",
+                "type": "Notification",
+                "title": notification.title,
+                "detail": notification.stage.replace("_", " ").title(),
+                "occurred_at": serialize_datetime(notification.created_at),
+            })
+
+    recent_activity = sorted(
+        recent_activity,
+        key=lambda item: item["occurred_at"] or "",
+        reverse=True,
+    )[:12]
+
     return jsonify({
-        "events_count": events_count,
+        "events_count": len(events),
         "registrations_by_category": [{"category": row[0], "count": row[1]} for row in registrations],
+        "registration_trends": registration_trends,
+        "recent_activity": recent_activity,
     })
 
 
