@@ -10,10 +10,25 @@ export default function Notifications() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/notifications')
-      .then(({ data }) => setNotifications(data.items || []))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    let active = true;
+
+    const loadNotifications = () => {
+      api.get('/notifications')
+        .then(({ data }) => {
+          if (active) setNotifications(data.items || []);
+        })
+        .catch((err) => console.error(err))
+        .finally(() => {
+          if (active) setLoading(false);
+        });
+    };
+
+    loadNotifications();
+    const intervalId = window.setInterval(loadNotifications, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   const markRead = async (id) => {

@@ -7,6 +7,7 @@ from sqlalchemy import func
 from ...extensions import db
 from ...models import AnalyticsEvent, Bookmark, Event, LoginHistory, Notification, OrganizerVerificationAsset, Registration, StudentAchievement, User
 from ...services.recommendations import recommended_events_for
+from ...services.notifications import REMINDER_STAGES
 from ...schemas import events_schema
 from ...utils.auth import current_user, roles_required
 
@@ -133,7 +134,6 @@ def build_event_monitoring():
 def overview():
     user = current_user()
     events = Event.query.filter_by(creator_id=user.id).order_by(Event.created_at.desc()).all()
-    event_ids = [event.id for event in events]
     registrations = (
         Registration.query.join(Event)
         .filter(Event.creator_id == user.id)
@@ -160,14 +160,6 @@ def overview():
     ]
 
     recent_activity = []
-    for registration in registration_rows[:10]:
-        recent_activity.append({
-            "id": f"registration-{registration.id}",
-            "type": "Registration",
-            "title": registration.event.title if registration.event else "Event registration",
-            "detail": f"{registration.user.name} registered" if registration.user else "Student registered",
-            "occurred_at": serialize_datetime(registration.created_at),
-        })
     for event in events[:10]:
         recent_activity.append({
             "id": f"event-{event.id}",
@@ -176,22 +168,6 @@ def overview():
             "detail": f"{event.status.title()} event created",
             "occurred_at": serialize_datetime(event.created_at),
         })
-    if event_ids:
-        for notification in (
-            Notification.query
-            .filter(Notification.event_id.in_(event_ids))
-            .order_by(Notification.created_at.desc())
-            .limit(10)
-            .all()
-        ):
-            recent_activity.append({
-                "id": f"notification-{notification.id}",
-                "type": "Notification",
-                "title": notification.title,
-                "detail": notification.stage.replace("_", " ").title(),
-                "occurred_at": serialize_datetime(notification.created_at),
-            })
-
     recent_activity = sorted(
         recent_activity,
         key=lambda item: item["occurred_at"] or "",
@@ -314,7 +290,13 @@ def admin_activity():
             "detail": bookmark.user.email if bookmark.user else "Unknown user",
             "occurred_at": serialize_datetime(bookmark.created_at),
         })
-    for notification in Notification.query.order_by(Notification.created_at.desc()).limit(8).all():
+    for notification in (
+        Notification.query
+        .filter(~Notification.stage.in_(REMINDER_STAGES))
+        .order_by(Notification.created_at.desc())
+        .limit(8)
+        .all()
+    ):
         recent_activity.append({
             "id": f"notification-{notification.id}",
             "type": "Notification",

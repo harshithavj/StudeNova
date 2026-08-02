@@ -1,8 +1,10 @@
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Award, BookOpenCheck, CalendarDays, Flame } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import StudentShell from '../components/student/StudentShell';
 import { useAuth } from '../context/AuthContext';
 import { formatDate } from '../utils/date';
+import api from '../services/api';
 
 const monthlyStats = [];
 const domainStats = [];
@@ -13,12 +15,31 @@ function MiniStat({ icon: Icon, label, value }) {
 
 export default function StudentHistory() {
   const { user } = useAuth();
-  let registered = [];
-  try {
-    registered = JSON.parse(localStorage.getItem('studenova_student_events') || '[]');
-  } catch {
-    registered = [];
-  }
+  const [registrations, setRegistrations] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    const loadRegistrations = async () => {
+      try {
+        const { data } = await api.get('/registrations/me');
+        if (active) setRegistrations(data.items || []);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    loadRegistrations();
+    const intervalId = window.setInterval(loadRegistrations, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const registered = useMemo(() => registrations.map((registration) => ({
+    ...registration.event,
+    registration_id: registration.id,
+    registration_status: registration.status
+  })).filter((event) => event.id), [registrations]);
 
   const lists = [
     ['Registered Events', registered],
@@ -46,7 +67,7 @@ export default function StudentHistory() {
             <h3 className="text-2xl font-black">{title}</h3>
             <div className="mt-4 grid gap-3 lg:grid-cols-3">
               {events.length > 0 ? (
-                events.map((event) => <div key={`${title}-${event.id}`} className="rounded-lg bg-white p-4 ring-1 ring-slate-200"><p className="font-black">{event.title}</p><p className="text-sm text-nova-muted">{formatDate(event.date || event.starts_at)}</p></div>)
+                events.map((event) => <div key={`${title}-${event.id}`} className="rounded-lg bg-white p-4 ring-1 ring-slate-200"><p className="font-black">{event.title}</p><p className="text-sm text-nova-muted">{formatDate(event.starts_at)}</p></div>)
               ) : (
                 <p className="col-span-full text-sm text-nova-muted font-bold">No events found in this category.</p>
               )}

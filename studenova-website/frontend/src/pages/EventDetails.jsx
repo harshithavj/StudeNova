@@ -64,16 +64,11 @@ export default function EventDetails() {
       apiId = apiId.replace('db-', '');
     }
 
-    const stored = JSON.parse(localStorage.getItem('studenova_student_events') || '[]');
-
     api.post(`/registrations/events/${apiId}/complete-external`, {
       external_platform: 'External',
       external_registration_url: event.registration_link || ''
     })
       .then(() => {
-        if (!stored.some((item) => item.id === event.id)) {
-          localStorage.setItem('studenova_student_events', JSON.stringify([...stored, { ...event, status: 'Registered' }]));
-        }
         toast.success('Added to My Events, calendar, and deadline alerts');
       })
       .catch((err) => {

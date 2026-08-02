@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required
 from ...extensions import db
 from ...models import Event, Tag
 from ...schemas import event_create_schema, event_schema, events_schema
+from ...services.notifications import schedule_event_reminders
 from ...services.storage import upload_event_poster
 from ...utils.auth import current_user, roles_required
 from ...utils.slug import slugify
@@ -94,6 +95,13 @@ def update_event(event_id):
             setattr(event, key, value)
     if "tags" in payload:
         event.tags = [Tag.query.filter_by(name=name.lower()).first() or Tag(name=name.lower()) for name in payload["tags"]]
+    tracked_user_ids = {
+        registration.user_id for registration in event.registrations
+    } | {
+        bookmark.user_id for bookmark in event.bookmarks
+    }
+    for user_id in tracked_user_ids:
+        schedule_event_reminders(user_id, event)
     db.session.commit()
     return jsonify(event_schema.dump(event))
 

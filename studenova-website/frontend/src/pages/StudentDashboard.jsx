@@ -1,17 +1,11 @@
 import { Award, BookOpenCheck, CalendarDays, Flame } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import Button from '../components/ui/Button';
 import StudentShell from '../components/student/StudentShell';
 import { useAuth } from '../context/AuthContext';
 import { studentAchievements } from '../data/mockData';
-
-function readStudentEvents() {
-  try {
-    return JSON.parse(localStorage.getItem('studenova_student_events') || '[]');
-  } catch {
-    return [];
-  }
-}
+import api from '../services/api';
 
 function StatCard({ icon: Icon, label, value }) {
   return (
@@ -25,7 +19,27 @@ function StatCard({ icon: Icon, label, value }) {
 
 export default function StudentDashboard() {
   const { user } = useAuth();
-  const registeredEvents = readStudentEvents();
+  const [registrations, setRegistrations] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    const loadRegistrations = async () => {
+      try {
+        const { data } = await api.get('/registrations/me');
+        if (active) setRegistrations(data.items || []);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    loadRegistrations();
+    const intervalId = window.setInterval(loadRegistrations, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const activeRegistrations = registrations.filter((registration) => registration.event?.status !== 'completed');
 
   return (
     <StudentShell user={user}>
@@ -37,7 +51,7 @@ export default function StudentDashboard() {
         </div>
         <div className="grid gap-4 md:grid-cols-4">
           <StatCard icon={CalendarDays} label="Total Participated Events" value="0" />
-          <StatCard icon={BookOpenCheck} label="Active Registrations" value={registeredEvents.length} />
+          <StatCard icon={BookOpenCheck} label="Active Registrations" value={activeRegistrations.length} />
           <StatCard icon={Award} label="Achievements Earned" value={studentAchievements.length} />
           <StatCard icon={Flame} label="Participation Streak" value={user?.participation_streak || 0} />
         </div>

@@ -33,12 +33,15 @@ export default function CollegeDashboard() {
   const isProfileView = location.pathname === '/college/profile';
 
   useEffect(() => {
+    let active = true;
+
     const loadDashboard = async () => {
       try {
         const [eventsResponse, analyticsResponse] = await Promise.all([
           api.get('/events/mine'),
           api.get('/analytics/overview')
         ]);
+        if (!active) return;
         setEvents(eventsResponse.data.items || []);
         setAnalytics({
           registration_trends: analyticsResponse.data.registration_trends || [],
@@ -46,13 +49,19 @@ export default function CollegeDashboard() {
         });
         setAnalyticsError('');
       } catch (error) {
+        if (!active) return;
         setAnalyticsError(error.response?.data?.message || 'Unable to fetch dashboard updates right now.');
       } finally {
-        setLoadingStats(false);
+        if (active) setLoadingStats(false);
       }
     };
 
     loadDashboard();
+    const intervalId = window.setInterval(loadDashboard, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   const summaryCards = useMemo(() => {

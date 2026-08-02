@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { daysUntil, formatDate } from '../utils/date';
 import Button from './ui/Button';
+import api from '../services/api';
 
 function getRegistrationStatus(event) {
   if (event.registration_status) return event.registration_status;
@@ -19,12 +20,18 @@ export default function EventCard({ event }) {
   const location = useLocation();
   const linkState = { from: `${location.pathname}${location.search}` };
 
-  const saveEvent = () => {
-    const stored = JSON.parse(localStorage.getItem('studenova_saved_events') || '[]');
-    if (!stored.some((item) => item.id === event.id)) {
-      localStorage.setItem('studenova_saved_events', JSON.stringify([...stored, event]));
+  const saveEvent = async () => {
+    let apiId = event.id;
+    if (typeof apiId === 'string' && apiId.startsWith('db-')) {
+      apiId = apiId.replace('db-', '');
     }
-    toast.success('Saved for later');
+    try {
+      await api.post(`/bookmarks/events/${apiId}`);
+      toast.success('Saved for later');
+    } catch (error) {
+      console.error(error);
+      toast.error('Sign in to save this event');
+    }
   };
 
   const openRegistration = () => {

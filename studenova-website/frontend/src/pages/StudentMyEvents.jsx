@@ -1,18 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Clock3 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import Button from '../components/ui/Button';
 import StudentShell from '../components/student/StudentShell';
 import { useAuth } from '../context/AuthContext';
-import { sampleEvents } from '../data/mockData';
 import { formatDate } from '../utils/date';
-
-function readStored(key) {
-  try {
-    return JSON.parse(localStorage.getItem(key) || '[]');
-  } catch {
-    return [];
-  }
-}
+import api from '../services/api';
 
 function EventRow({ event, registrationStatus, eventStatus }) {
   return (
@@ -28,7 +21,7 @@ function EventRow({ event, registrationStatus, eventStatus }) {
         </div>
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-nova-muted">
-        <span className="flex items-center gap-2"><Clock3 size={16} />Deadline: {formatDate(event.deadline)}</span>
+        <span className="flex items-center gap-2"><Clock3 size={16} />Deadline: {formatDate(event.deadline || event.registration_deadline)}</span>
         <Button as={Link} to={`/events/${event.id}`} state={{ from: '/student/my-events' }} size="sm" variant="secondary">Quick Access</Button>
       </div>
     </article>
@@ -37,8 +30,39 @@ function EventRow({ event, registrationStatus, eventStatus }) {
 
 export default function StudentMyEvents() {
   const { user } = useAuth();
-  const saved = readStored('studenova_saved_events');
-  const registered = readStored('studenova_student_events');
+  const [saved, setSaved] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    const loadEvents = async () => {
+      try {
+        const [savedResponse, registrationsResponse] = await Promise.all([
+          api.get('/bookmarks'),
+          api.get('/registrations/me')
+        ]);
+        if (!active) return;
+        setSaved(savedResponse.data.items || []);
+        setRegistrations(registrationsResponse.data.items || []);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    loadEvents();
+    const intervalId = window.setInterval(loadEvents, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const registered = registrations.map((registration) => ({
+    ...registration.event,
+    registration_id: registration.id,
+    registration_status: registration.status,
+    deadline: registration.event?.registration_deadline
+  })).filter((event) => event.id);
+
   const sections = [
     ['Saved Events', saved, 'Saved', 'Open'],
     ['Registered Events', registered, 'Registered', 'Upcoming'],

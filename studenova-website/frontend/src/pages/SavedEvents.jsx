@@ -2,17 +2,27 @@ import { useEffect, useState } from 'react';
 import EventCard from '../components/EventCard';
 import BackButton from '../components/BackButton';
 import Breadcrumbs from '../components/Breadcrumbs';
+import api from '../services/api';
 
 export default function SavedEvents() {
   const [saved, setSaved] = useState([]);
 
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('studenova_saved_events') || '[]');
-      setSaved(stored);
-    } catch {
-      setSaved([]);
-    }
+    let active = true;
+    const loadSavedEvents = async () => {
+      try {
+        const { data } = await api.get('/bookmarks');
+        if (active) setSaved(data.items || []);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    loadSavedEvents();
+    const intervalId = window.setInterval(loadSavedEvents, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   return (
