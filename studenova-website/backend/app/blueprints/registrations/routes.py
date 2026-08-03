@@ -64,6 +64,26 @@ def event_registrations(event_id):
     return jsonify({"items": registrations_schema.dump(event.registrations)})
 
 
+@registrations_bp.put("/<int:registration_id>/status")
+@roles_required("college_organizer", "industry_organizer")
+def update_registration_status(registration_id):
+    registration = Registration.query.get_or_404(registration_id)
+    if registration.event.creator_id != current_user().id:
+        return jsonify({"message": "Only the event creator can update registrations"}), 403
+
+    status = (request.get_json() or {}).get("status", "").strip().lower()
+    if status not in {"approved", "rejected"}:
+        return jsonify({"message": "Status must be approved or rejected"}), 422
+
+    registration.status = status
+    if status == "rejected":
+        registration.rejection_reason = (request.get_json() or {}).get("rejection_reason", "").strip() or None
+    else:
+        registration.rejection_reason = None
+    db.session.commit()
+    return jsonify(registration_schema.dump(registration))
+
+
 @registrations_bp.post("/check-in/<qr_token>")
 @roles_required("college_organizer", "industry_organizer")
 def check_in(qr_token):

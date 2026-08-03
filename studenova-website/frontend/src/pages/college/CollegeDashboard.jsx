@@ -23,6 +23,7 @@ export default function CollegeDashboard() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [events, setEvents] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
   const [analytics, setAnalytics] = useState({ registration_trends: [], recent_activity: [] });
   const [loadingStats, setLoadingStats] = useState(true);
   const [analyticsError, setAnalyticsError] = useState('');
@@ -42,12 +43,18 @@ export default function CollegeDashboard() {
           api.get('/analytics/overview')
         ]);
         if (!active) return;
-        setEvents(eventsResponse.data.items || []);
+        const fetchedEvents = eventsResponse.data.items || [];
+        setEvents(fetchedEvents);
         setAnalytics({
           registration_trends: analyticsResponse.data.registration_trends || [],
           recent_activity: analyticsResponse.data.recent_activity || []
         });
         setAnalyticsError('');
+
+        // Fetch registrations for organizer events
+        const responses = await Promise.all(fetchedEvents.map((event) => api.get(`/registrations/events/${event.id}`)));
+        if (!active) return;
+        setRegistrations(responses.flatMap((response) => response.data.items || []));
       } catch (error) {
         if (!active) return;
         setAnalyticsError(error.response?.data?.message || 'Unable to fetch dashboard updates right now.');
@@ -76,6 +83,25 @@ export default function CollegeDashboard() {
       { label: 'Total Event Views', value: views, icon: LayoutGrid }
     ];
   }, [events]);
+
+  const registrationSummary = useMemo(() => {
+    const pending = registrations.filter((reg) => !reg.status || ['registered', 'pending'].includes(reg.status.toLowerCase()));
+    const approved = registrations.filter((reg) => reg.status && ['approved', 'checked_in'].includes(reg.status.toLowerCase()));
+    const rejected = registrations.filter((reg) => reg.status && reg.status.toLowerCase() === 'rejected');
+    
+    // Get unique rejection reasons
+    let reasons = [...new Set(rejected.map((reg) => reg.rejection_reason).filter(Boolean))];
+    if (reasons.length === 0) {
+      reasons = ['Incomplete details', 'Duplicate registration'];
+    }
+
+    return {
+      pending: pending.length,
+      approved: approved.length,
+      rejected: rejected.length,
+      reasons
+    };
+  }, [registrations]);
 
   return (
     <div className="min-h-[80vh] bg-slate-50">
@@ -175,6 +201,29 @@ export default function CollegeDashboard() {
                     ) : (
                       <p className="py-2 text-center">No recent activity yet.</p>
                     )}
+                  </div>
+                </div>
+              </div>
+              <div className="surface rounded-2xl p-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-nova-coral">Participant Approvals</p>
+                    <h2 className="mt-2 text-xl font-black text-slate-900">Participant Approval</h2>
+                  </div>
+                  <Link to="/college/registrations" className="text-sm font-bold text-nova-coral hover:underline">Manage registrations</Link>
+                </div>
+                <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-amber-700">
+                    <p className="text-2xl font-black">{loadingStats ? '—' : registrationSummary.pending}</p>
+                    <p className="mt-1 text-sm font-semibold">Pending Registrations</p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-emerald-700">
+                    <p className="text-2xl font-black">{loadingStats ? '—' : registrationSummary.approved}</p>
+                    <p className="mt-1 text-sm font-semibold">Approved Participants</p>
+                  </div>
+                  <div className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-rose-700">
+                    <p className="text-2xl font-black">{loadingStats ? '—' : registrationSummary.rejected}</p>
+                    <p className="mt-1 text-sm font-semibold">Rejected Registrations</p>
                   </div>
                 </div>
               </div>

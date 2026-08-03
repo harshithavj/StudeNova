@@ -10,6 +10,7 @@ class Registration(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"), nullable=False)
     status = db.Column(db.String(30), default="registered", nullable=False)
+    rejection_reason = db.Column(db.String(255))
     external_platform = db.Column(db.String(120))
     external_registration_url = db.Column(db.Text)
     marked_completed_at = db.Column(db.DateTime)
