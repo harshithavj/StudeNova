@@ -1,10 +1,10 @@
 export default function Button({ as: Component = 'button', className = '', variant = 'primary', size = 'md', ...props }) {
   const variants = {
-    primary: 'bg-slate-950 text-white hover:-translate-y-0.5 hover:bg-slate-800',
-    secondary: 'bg-white text-slate-950 ring-1 ring-slate-200 hover:-translate-y-0.5 hover:bg-slate-50',
-    accent: 'bg-nova-coral text-white shadow-coral hover:-translate-y-0.5 hover:bg-[#f04f5f]',
-    subtle: 'bg-nova-peach text-nova-coral hover:-translate-y-0.5 hover:bg-nova-pink',
-    pink: 'bg-pink-500 text-white hover:-translate-y-0.5 hover:bg-pink-600 shadow-md shadow-pink-200'
+    primary: 'bg-slate-950 text-white hover:-translate-y-0.5 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none disabled:transform-none disabled:shadow-none',
+    secondary: 'bg-white text-slate-950 ring-1 ring-slate-200 hover:-translate-y-0.5 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none disabled:transform-none disabled:shadow-none',
+    accent: 'bg-nova-coral text-white shadow-coral hover:-translate-y-0.5 hover:bg-[#f04f5f] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none disabled:transform-none disabled:shadow-none',
+    subtle: 'bg-nova-peach text-nova-coral hover:-translate-y-0.5 hover:bg-nova-pink disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none disabled:transform-none disabled:shadow-none',
+    pink: 'bg-pink-500 text-white hover:-translate-y-0.5 hover:bg-pink-600 shadow-md shadow-pink-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none disabled:transform-none disabled:shadow-none'
   };
   const sizes = {
     sm: 'px-3 py-2 text-sm',
@@ -13,3 +13,4 @@ export default function Button({ as: Component = 'button', className = '', varia
   };
   return <Component className={`inline-flex items-center justify-center gap-2 rounded-lg font-bold transition duration-200 ${variants[variant]} ${sizes[size]} ${className}`} {...props} />;
 }
+

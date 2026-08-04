@@ -182,9 +182,15 @@ export default function EventDetails() {
             </div>
             <div className="mt-5 rounded-lg bg-nova-peach p-4 text-sm font-bold text-nova-coral">{daysUntil(eventDeadline)} days left to register</div>
             <div className="mt-5 grid gap-3">
-              <Button onClick={openRegistration} variant="accent" disabled={status === 'Closed'}><ExternalLink size={16} />Register on Original Platform</Button>
-              <Button variant="secondary" onClick={markRegistered}>Mark Registration Completed</Button>
-              <Button variant="secondary" onClick={() => toast.success('Added to your calendar')}>Export to Google Calendar</Button>
+              <Button onClick={openRegistration} variant="accent" disabled={status === 'Closed'}>
+                {status === 'Closed' ? 'Registration Closed' : <><ExternalLink size={16} />Register on Original Platform</>}
+              </Button>
+              {status !== 'Closed' && (
+                <>
+                  <Button variant="secondary" onClick={markRegistered}>Mark Registration Completed</Button>
+                  <Button variant="secondary" onClick={() => toast.success('Added to your calendar')}>Export to Google Calendar</Button>
+                </>
+              )}
             </div>
           </div>
           <div className="surface rounded-lg p-6">

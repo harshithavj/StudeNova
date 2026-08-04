@@ -69,10 +69,12 @@ export default function EventCard({ event }) {
           <span className="flex items-center gap-2"><Users size={16} />{event.eligibility} / {event.mode}</span>
         </div>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-bold text-nova-coral">{regStatus === 'Closed' ? 'Closed' : regStatus === 'Closing Soon' ? 'Closing Soon' : `${daysUntil(eventDeadline)} days left`}</span>
+          <span className="text-sm font-bold text-nova-coral">{regStatus === 'Closed' ? '' : regStatus === 'Closing Soon' ? 'Closing Soon' : `${daysUntil(eventDeadline)} days left`}</span>
           <Button as={Link} to={`/events/${event.id}`} state={linkState} size="sm" variant="secondary"><Eye size={16} />View Details</Button>
         </div>
-        <Button onClick={openRegistration} size="sm" variant="accent" disabled={regStatus === 'Closed'}>Register</Button>
+        <Button onClick={openRegistration} size="sm" variant="accent" disabled={regStatus === 'Closed'}>
+          {regStatus === 'Closed' ? 'Closed' : 'Register'}
+        </Button>
       </div>
     </motion.article>
   );
