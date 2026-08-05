@@ -446,7 +446,11 @@ function renderEventMonitoring(groups = {}) {
                 <button class="mini-row-close" type="button" title="Move back to upcoming" data-event-action="publish" data-event-id="${event.id}">&times;</button>
               ` : `
                 <span class="row-actions">
-                  <button class="small-button" type="button" data-event-action="publish" data-event-id="${event.id}">Publish</button>
+                  ${event.status === 'published' ? `
+                    <button class="small-button approve-button" type="button" disabled>Published</button>
+                  ` : `
+                    <button class="small-button" type="button" data-event-action="publish" data-event-id="${event.id}">Publish</button>
+                  `}
                   <button class="small-button" type="button" data-event-action="complete" data-event-id="${event.id}">Complete</button>
                   <button class="small-button" type="button" data-event-action="flag" data-event-id="${event.id}">Flag</button>
                   <button class="small-button reject-button" type="button" data-event-action="cancel" data-event-id="${event.id}">Cancel</button>
