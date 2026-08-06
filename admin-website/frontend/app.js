@@ -397,15 +397,75 @@ function renderRoles(items = []) {
 
 function renderActivity(items = []) {
   const activityList = document.querySelector('#activityList');
-  activityList.innerHTML = items.length ? items.map((item) => `
-    <div class="activity-row">
-      <span class="activity-type">${item.type}</span>
-      <div>
-        <p class="activity-title">${item.title}</p>
-        <p class="activity-detail">${item.detail} - ${formatDate(item.occurred_at)}</p>
+  if (!items.length) {
+    activityList.innerHTML = '<p class="empty-state">No activity recorded yet.</p>';
+    return;
+  }
+
+  // Group items by user email
+  const groups = {};
+  items.forEach((item) => {
+    // If there is no user email, group it under a system/platform group
+    const email = item.user_email || 'system@platform.local';
+    if (!groups[email]) {
+      groups[email] = {
+        email: email,
+        name: item.user_name || (email === 'system@platform.local' ? 'System / Platform' : 'Unknown User'),
+        role: item.user_role || (email === 'system@platform.local' ? 'system' : ''),
+        latest_time: item.occurred_at,
+        activities: []
+      };
+    }
+    groups[email].activities.push(item);
+    // Track the latest activity timestamp
+    if (new Date(item.occurred_at) > new Date(groups[email].latest_time)) {
+      groups[email].latest_time = item.occurred_at;
+    }
+  });
+
+  // Sort groups by the latest activity timestamp descending
+  const sortedGroups = Object.values(groups).sort((a, b) => {
+    return new Date(b.latest_time) - new Date(a.latest_time);
+  });
+
+  // Render the grouped accordion HTML
+  activityList.innerHTML = sortedGroups.map((group) => {
+    const initial = group.name.trim().charAt(0) || '?';
+    const roleBadge = group.role ? `<span class="user-role">${group.role.replaceAll('_', ' ')}</span>` : '';
+    
+    // Generate individual activity rows
+    const rowsHtml = group.activities.map((item) => `
+      <div class="activity-row">
+        <span class="activity-type">${item.type}</span>
+        <div>
+          <p class="activity-title">${item.title}</p>
+          <p class="activity-detail">${item.detail} - ${formatDate(item.occurred_at)}</p>
+        </div>
       </div>
-    </div>
-  `).join('') : '<p class="empty-state">No activity recorded yet.</p>';
+    `).join('');
+
+    return `
+      <article class="management-card user-activity-group">
+        <div class="user-activity-header" data-user-email="${group.email}">
+          <div class="user-info">
+            <span class="user-avatar-initial">${initial}</span>
+            <div class="user-meta">
+              <h3 class="user-name">${group.name}</h3>
+              <p class="user-email">${group.email} ${roleBadge}</p>
+            </div>
+          </div>
+          <div class="activity-summary">
+            <span class="activity-count-badge">${group.activities.length} ${group.activities.length === 1 ? 'activity' : 'activities'}</span>
+            <span class="latest-activity-time">${formatDate(group.latest_time)}</span>
+            <span class="chevron-icon">▼</span>
+          </div>
+        </div>
+        <div class="user-activity-body hidden">
+          ${rowsHtml}
+        </div>
+      </article>
+    `;
+  }).join('');
 }
 
 function renderTopEvents(items = []) {
@@ -882,6 +942,17 @@ notificationForm.addEventListener('submit', async (event) => {
 });
 
 document.addEventListener('click', async (event) => {
+  const activityHeader = event.target.closest('.user-activity-header');
+  if (activityHeader) {
+    const group = activityHeader.closest('.user-activity-group');
+    const body = group.querySelector('.user-activity-body');
+    const chevron = group.querySelector('.chevron-icon');
+    const isHidden = body.classList.contains('hidden');
+    body.classList.toggle('hidden', !isHidden);
+    chevron.classList.toggle('rotate', isHidden);
+    return;
+  }
+
   const viewButton = event.target.closest('[data-view-verification]');
   if (viewButton) {
     renderVerificationDetails(viewButton.dataset.viewVerification);
