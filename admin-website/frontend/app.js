@@ -451,14 +451,17 @@ function renderActivity(items = []) {
             <span class="user-avatar-initial">${initial}</span>
             <div class="user-meta">
               <h3 class="user-name">${group.name}</h3>
-              <p class="user-email">${group.email} ${roleBadge}</p>
+              <p class="user-email">${group.email}</p>
             </div>
           </div>
-          <div class="activity-summary">
-            <span class="activity-count-badge">${group.activities.length} ${group.activities.length === 1 ? 'activity' : 'activities'}</span>
-            <span class="latest-activity-time">${formatDate(group.latest_time)}</span>
-            <span class="chevron-icon">▼</span>
+          <div class="user-role-wrapper">
+            ${roleBadge}
           </div>
+          <div class="activity-badge-wrapper">
+            <span class="activity-count-badge">${group.activities.length} ${group.activities.length === 1 ? 'activity' : 'activities'}</span>
+          </div>
+          <span class="latest-activity-time">${formatDate(group.latest_time)}</span>
+          <span class="chevron-icon">▼</span>
         </div>
         <div class="user-activity-body hidden">
           ${rowsHtml}
