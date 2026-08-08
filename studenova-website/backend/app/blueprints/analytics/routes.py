@@ -233,6 +233,10 @@ def admin_activity():
             "title": f"{user.name} joined as {user.role.replace('_', ' ')}",
             "detail": user.email,
             "occurred_at": serialize_datetime(user.created_at),
+            "user_id": user.id,
+            "user_email": user.email,
+            "user_name": user.name,
+            "user_role": user.role,
         })
     login_history_rows = LoginHistory.query.order_by(LoginHistory.occurred_at.desc()).limit(120).all()
     unique_login_rows = []
@@ -251,6 +255,10 @@ def admin_activity():
             "title": f"{login.user.name} logged in" if login.user else "User logged in",
             "detail": f"{login.user.email} ({login.user.role.replace('_', ' ')})" if login.user else "Unknown user",
             "occurred_at": serialize_datetime(login.occurred_at),
+            "user_id": login.user_id if login.user else None,
+            "user_email": login.user.email if login.user else None,
+            "user_name": login.user.name if login.user else None,
+            "user_role": login.user.role if login.user else None,
         }
 
     for login in unique_login_rows:
@@ -273,6 +281,10 @@ def admin_activity():
             "title": event.title,
             "detail": f"{event.category} by {event.conducting_organization or event.college or 'STUDENOVA'}",
             "occurred_at": serialize_datetime(event.created_at),
+            "user_id": event.creator_id,
+            "user_email": event.creator.email if event.creator else None,
+            "user_name": event.creator.name if event.creator else None,
+            "user_role": event.creator.role if event.creator else None,
         })
     for registration in Registration.query.order_by(Registration.created_at.desc()).limit(8).all():
         recent_activity.append({
@@ -281,6 +293,10 @@ def admin_activity():
             "title": registration.event.title if registration.event else "Event registration",
             "detail": registration.user.email if registration.user else "Unknown user",
             "occurred_at": serialize_datetime(registration.created_at),
+            "user_id": registration.user_id,
+            "user_email": registration.user.email if registration.user else None,
+            "user_name": registration.user.name if registration.user else None,
+            "user_role": registration.user.role if registration.user else None,
         })
     for bookmark in Bookmark.query.order_by(Bookmark.created_at.desc()).limit(8).all():
         recent_activity.append({
@@ -289,6 +305,10 @@ def admin_activity():
             "title": bookmark.event.title if bookmark.event else "Saved event",
             "detail": bookmark.user.email if bookmark.user else "Unknown user",
             "occurred_at": serialize_datetime(bookmark.created_at),
+            "user_id": bookmark.user_id,
+            "user_email": bookmark.user.email if bookmark.user else None,
+            "user_name": bookmark.user.name if bookmark.user else None,
+            "user_role": bookmark.user.role if bookmark.user else None,
         })
     for notification in (
         Notification.query
@@ -303,6 +323,10 @@ def admin_activity():
             "title": notification.title,
             "detail": notification.stage,
             "occurred_at": serialize_datetime(notification.created_at),
+            "user_id": notification.user_id,
+            "user_email": notification.user.email if notification.user else None,
+            "user_name": notification.user.name if notification.user else None,
+            "user_role": notification.user.role if notification.user else None,
         })
     for metric in AnalyticsEvent.query.order_by(AnalyticsEvent.recorded_at.desc()).limit(8).all():
         recent_activity.append({
@@ -311,6 +335,10 @@ def admin_activity():
             "title": metric.metric,
             "detail": f"{metric.value:g}{f' - {metric.dimension}' if metric.dimension else ''}",
             "occurred_at": serialize_datetime(metric.recorded_at),
+            "user_id": metric.event.creator_id if (metric.event and metric.event.creator_id) else None,
+            "user_email": metric.event.creator.email if (metric.event and metric.event.creator) else None,
+            "user_name": metric.event.creator.name if (metric.event and metric.event.creator) else None,
+            "user_role": metric.event.creator.role if (metric.event and metric.event.creator) else None,
         })
     for achievement in StudentAchievement.query.order_by(StudentAchievement.created_at.desc()).limit(8).all():
         recent_activity.append({
@@ -319,6 +347,10 @@ def admin_activity():
             "title": achievement.title,
             "detail": f"{achievement.achievement_type} proof uploaded",
             "occurred_at": serialize_datetime(achievement.created_at),
+            "user_id": achievement.user_id,
+            "user_email": achievement.user.email if achievement.user else None,
+            "user_name": achievement.user.name if achievement.user else None,
+            "user_role": achievement.user.role if achievement.user else None,
         })
     for request_item in verification_requests[:8]:
         recent_activity.append({
@@ -327,6 +359,10 @@ def admin_activity():
             "title": f"{request_item['organizer_name']} submitted verification",
             "detail": request_item["organization_name"],
             "occurred_at": request_item["submission_date"],
+            "user_id": request_item["user_id"],
+            "user_email": request_item["official_email"],
+            "user_name": request_item["organizer_name"],
+            "user_role": request_item["role"],
         })
 
     recent_activity = sorted(

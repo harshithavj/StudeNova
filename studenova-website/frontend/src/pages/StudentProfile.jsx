@@ -4,7 +4,6 @@ import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
 import StudentShell from '../components/student/StudentShell';
 import { useAuth } from '../context/AuthContext';
-import { studentAchievements } from '../data/mockData';
 import api from '../services/api';
 
 const ENGINEERING_DOMAINS = {
@@ -245,22 +244,6 @@ export default function StudentProfile() {
                 <Save size={16} />{loading ? 'Saving...' : 'Save Profile'}
               </Button>
             </form>
-          </div>
-        </section>
-        <section className="surface rounded-lg p-6">
-          <h3 className="text-2xl font-black">Dashboard Statistics</h3>
-          <div className="mt-4 grid gap-4 md:grid-cols-4">
-            {[
-              ['Total Events Participated', '26'],
-              ['Active Registrations', '3'],
-              ['Achievements Earned', String(studentAchievements.length)],
-              ['Participation Streak', '10']
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-lg bg-white p-4 ring-1 ring-slate-200">
-                <p className="text-2xl font-black">{value}</p>
-                <p className="text-sm text-nova-muted">{label}</p>
-              </div>
-            ))}
           </div>
         </section>
       </div>

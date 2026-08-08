@@ -37,6 +37,8 @@ class StudentAchievement(db.Model):
     awarded_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+    user = db.relationship("User")
+
 
 class StudentEventReminder(db.Model):
     __tablename__ = "student_event_reminders"

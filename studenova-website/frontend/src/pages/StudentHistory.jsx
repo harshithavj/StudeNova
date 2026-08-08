@@ -6,9 +6,6 @@ import { useAuth } from '../context/AuthContext';
 import { formatDate } from '../utils/date';
 import api from '../services/api';
 
-const monthlyStats = [];
-const domainStats = [];
-
 function MiniStat({ icon: Icon, label, value }) {
   return <div className="rounded-lg bg-white p-4 ring-1 ring-slate-200"><Icon className="text-nova-coral" /><p className="mt-3 text-2xl font-black">{value}</p><p className="text-sm text-nova-muted">{label}</p></div>;
 }
@@ -41,11 +38,58 @@ export default function StudentHistory() {
     registration_status: registration.status
   })).filter((event) => event.id), [registrations]);
 
+  const participatedCount = useMemo(() => registrations.filter((registration) => 
+    registration.status === 'checked_in' || 
+    registration.event?.status === 'completed' || 
+    (registration.event?.ends_at ? new Date(registration.event.ends_at) < new Date() : registration.event?.starts_at && new Date(registration.event.starts_at) < new Date())
+  ).length, [registrations]);
+
+  const domainsCoveredCount = useMemo(() => {
+    const uniqueDomains = new Set(registered.map(event => event.domain).filter(Boolean));
+    return uniqueDomains.size;
+  }, [registered]);
+
+  const attended = useMemo(() => registered.filter(event => event.registration_status === 'checked_in'), [registered]);
+  const cancelled = useMemo(() => registered.filter(event => event.registration_status === 'rejected'), [registered]);
+  const activeRegistered = useMemo(() => registered.filter(event => event.registration_status !== 'checked_in' && event.registration_status !== 'rejected'), [registered]);
+
   const lists = [
-    ['Registered Events', registered],
-    ['Attended Events', []],
-    ['Cancelled Events', []]
+    ['Registered Events', activeRegistered],
+    ['Attended Events', attended],
+    ['Cancelled Events', cancelled]
   ];
+
+  const monthlyStats = useMemo(() => {
+    const counts = {};
+    registered.forEach((event) => {
+      if (!event.starts_at) return;
+      try {
+        const date = new Date(event.starts_at);
+        const monthName = date.toLocaleString('default', { month: 'short', year: '2-digit' });
+        counts[monthName] = (counts[monthName] || 0) + 1;
+      } catch (e) {
+        console.error(e);
+      }
+    });
+    return Object.entries(counts).map(([name, count]) => ({
+      name,
+      events: count,
+    }));
+  }, [registered]);
+
+  const domainStats = useMemo(() => {
+    const counts = {};
+    registered.forEach((event) => {
+      if (!event.domain) return;
+      counts[event.domain] = (counts[event.domain] || 0) + 1;
+    });
+    const colors = ['#ff5f6d', '#ffc371', '#4facfe', '#00f2fe', '#43e97b', '#38f9d7', '#fa709a', '#fee140'];
+    return Object.entries(counts).map(([name, count], index) => ({
+      name,
+      value: count,
+      color: colors[index % colors.length]
+    }));
+  }, [registered]);
 
   return (
     <StudentShell user={user}>
@@ -56,10 +100,10 @@ export default function StudentHistory() {
         </div>
         <section className="surface rounded-lg p-6">
           <div className="grid gap-4 md:grid-cols-4">
-            <MiniStat icon={CalendarDays} label="Total Events Participated" value="0" />
-            <MiniStat icon={BookOpenCheck} label="Registered Events" value={String(registered.length)} />
-            <MiniStat icon={Award} label="Domains Covered" value="0" />
-            <MiniStat icon={Flame} label="Participation Streak" value={String(user?.participation_streak || 0)} />
+            <MiniStat icon={CalendarDays} label="Total Events Participated" value={String(participatedCount)} />
+            <MiniStat icon={BookOpenCheck} label="Registered Events" value={String(activeRegistered.length)} />
+            <MiniStat icon={Award} label="Domains Covered" value={String(domainsCoveredCount)} />
+            <MiniStat icon={Flame} label="Participation Streak" value={String(user?.profile?.participation_streak || 0)} />
           </div>
         </section>
         {lists.map(([title, events]) => (
