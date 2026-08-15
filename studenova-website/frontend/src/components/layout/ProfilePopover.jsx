@@ -84,8 +84,12 @@ export default function ProfilePopover({ isOpen, onClose, className = "" }) {
               />
             </svg>
             {/* Inner Profile Image Fallback */}
-            <div className="absolute left-[8px] top-[8px] flex h-[56px] w-[56px] items-center justify-center rounded-full bg-emerald-500 text-3xl shadow-inner select-none">
-              👩‍💻
+            <div className="absolute left-[8px] top-[8px] flex h-[56px] w-[56px] items-center justify-center rounded-full bg-emerald-500 text-3xl shadow-inner select-none overflow-hidden">
+              {user?.avatar_url ? (
+                <img src={user.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+              ) : (
+                '👩‍💻'
+              )}
             </div>
           </div>
           {/* Progress Label */}

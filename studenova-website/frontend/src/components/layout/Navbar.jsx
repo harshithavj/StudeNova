@@ -73,8 +73,12 @@ export default function Navbar() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-sm shadow-inner select-none">
-                    👩‍💻
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-sm shadow-inner select-none overflow-hidden">
+                    {user?.avatar_url ? (
+                      <img src={user.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                    ) : (
+                      '👩‍💻'
+                    )}
                   </div>
                 </button>
                 <ProfilePopover isOpen={profileOpen} onClose={() => setProfileOpen(false)} className="right-0 mt-2" />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Edit, Github, Linkedin, Save, Upload, UserRound } from 'lucide-react';
+import { Edit, Github, Linkedin, Save, Upload, UserRound, Camera, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
 import StudentShell from '../components/student/StudentShell';
@@ -7,16 +7,68 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 const ENGINEERING_DOMAINS = {
-  'Computer Science & IT': ['Python', 'Java', 'C++', 'JavaScript', 'React', 'Node.js', 'SQL', 'MongoDB', 'Git & GitHub', 'Cloud Computing', 'Cybersecurity', 'Data Structures & Algorithms'],
-  'Artificial Intelligence & Data Science': ['Python', 'Machine Learning', 'Deep Learning', 'Data Analysis', 'Data Visualization', 'TensorFlow', 'PyTorch', 'Natural Language Processing', 'Computer Vision', 'SQL'],
-  'Electronics & Communication': ['Embedded Systems', 'Arduino', 'Raspberry Pi', 'VLSI Design', 'Verilog', 'MATLAB', 'PCB Design', 'IoT', 'Signal Processing', 'Communication Systems'],
-  'Electrical Engineering': ['Circuit Design', 'Power Systems', 'MATLAB', 'PLC Programming', 'Control Systems', 'Electrical Machines', 'Renewable Energy Systems', 'AutoCAD Electrical'],
-  'Mechanical Engineering': ['AutoCAD', 'SolidWorks', 'CATIA', 'ANSYS', 'Finite Element Analysis', 'CAD/CAM', 'Thermodynamics', 'Manufacturing Processes', '3D Printing'],
-  'Civil Engineering': ['AutoCAD', 'STAAD.Pro', 'Revit', 'ETABS', 'Surveying', 'Structural Analysis', 'Construction Management', 'Building Information Modeling'],
-  'Chemical Engineering': ['Aspen HYSYS', 'MATLAB', 'Process Simulation', 'Process Control', 'Chemical Process Design', 'Heat Transfer', 'Mass Transfer'],
-  'Biomedical Engineering': ['MATLAB', 'Medical Imaging', 'Bioinstrumentation', 'Biomedical Signal Processing', 'CAD', 'Biomaterials', 'Python'],
-  'Aerospace Engineering': ['CATIA', 'ANSYS', 'MATLAB', 'Aerodynamics', 'Flight Mechanics', 'CAD', 'Computational Fluid Dynamics'],
-  'Industrial Engineering': ['AutoCAD', 'SolidWorks', 'Operations Research', 'Supply Chain Management', 'Quality Control', 'Lean Manufacturing', 'Data Analysis']
+  'Computer Science & IT': [
+    'Python', 'Java', 'C++', 'C#', 'Go', 'Rust', 'TypeScript', 'JavaScript', 
+    'HTML/CSS', 'React', 'Vue.js', 'Angular', 'Next.js', 'Node.js', 'Express.js', 
+    'Django', 'Flask', 'SQL', 'PostgreSQL', 'MongoDB', 'Redis', 'Git & GitHub', 
+    'Docker', 'Kubernetes', 'Cloud Computing', 'AWS', 'Azure', 'GCP', 'Linux/Unix', 
+    'CI/CD', 'API Development', 'GraphQL', 'Cybersecurity', 'Data Structures & Algorithms', 
+    'System Design'
+  ],
+  'Artificial Intelligence & Data Science': [
+    'Python', 'R', 'Machine Learning', 'Deep Learning', 'Data Analysis', 
+    'Data Visualization', 'Pandas', 'NumPy', 'Scikit-Learn', 'TensorFlow', 
+    'PyTorch', 'Keras', 'Hadoop', 'Spark', 'Natural Language Processing', 
+    'Computer Vision', 'LLMs', 'Prompt Engineering', 'Reinforcement Learning', 
+    'Generative AI', 'Feature Engineering', 'Data Warehousing', 'MLOps', 'SQL'
+  ],
+  'Electronics & Communication': [
+    'Embedded Systems', 'Arduino', 'Raspberry Pi', 'VLSI Design', 'Verilog', 
+    'VHDL', 'FPGA Design', 'Microcontrollers', 'MATLAB', 'PCB Design', 'IoT', 
+    'Signal Processing', 'DSP (Digital Signal Processing)', 'RF Engineering', 
+    'Antenna Design', 'Analog Electronics', 'Digital Electronics', 'Oscilloscopes', 
+    'Wireless Networks', 'Communication Systems'
+  ],
+  'Electrical Engineering': [
+    'Circuit Design', 'Power Systems', 'Power Electronics', 'Smart Grid', 
+    'SCADA', 'High Voltage Engineering', 'Microgrid Systems', 'Energy Auditing', 
+    'MATLAB', 'LabVIEW', 'PLC Programming', 'Control Systems', 'Electrical Machines', 
+    'Renewable Energy Systems', 'AutoCAD Electrical', 'Electrical Simulation'
+  ],
+  'Mechanical Engineering': [
+    'AutoCAD', 'SolidWorks', 'CATIA', 'Fusion 360', 'ANSYS', 'Finite Element Analysis', 
+    'CAD/CAM', 'CNC Programming', 'Robotic Systems', 'HVAC Design', 'Thermodynamics', 
+    'Fluid Mechanics', 'GD&T (Geometric Dimensioning and Tolerancing)', 
+    'Aerodynamics', 'Kinematics', 'Manufacturing Processes', '3D Printing'
+  ],
+  'Civil Engineering': [
+    'AutoCAD', 'STAAD.Pro', 'Revit', 'ETABS', 'Surveying', 'Structural Analysis', 
+    'Construction Management', 'Building Information Modeling', 'GIS (Geographic Information Systems)', 
+    'Geotechnical Engineering', 'Transportation Engineering', 'Hydraulics', 
+    'Concrete Technology', 'Primavera P6', 'Estimation & Costing'
+  ],
+  'Chemical Engineering': [
+    'Aspen HYSYS', 'MATLAB', 'Process Simulation', 'Process Control', 
+    'Chemical Process Design', 'Heat Transfer', 'Mass Transfer', 'Fluid Dynamics', 
+    'Thermodynamics', 'Reaction Kinetics', 'Petrochemical Processing', 'Water Treatment', 
+    'Safety Engineering', 'Biochemical Engineering'
+  ],
+  'Biomedical Engineering': [
+    'MATLAB', 'Medical Imaging', 'Bioinstrumentation', 'Biomedical Signal Processing', 
+    'CAD', 'Biomaterials', 'Python', 'Biomechanics', 'Tissue Engineering', 
+    'Medical Devices', 'Bioinformatics', 'Rehabilitation Engineering', 'Clinical Engineering'
+  ],
+  'Aerospace Engineering': [
+    'CATIA', 'ANSYS', 'MATLAB', 'Aerodynamics', 'Flight Mechanics', 'CAD', 
+    'Computational Fluid Dynamics', 'Propulsion Systems', 'Orbital Mechanics', 
+    'Avionics', 'Structural Analysis', 'Aircraft Design', 'Spacecraft Dynamics'
+  ],
+  'Industrial Engineering': [
+    'AutoCAD', 'SolidWorks', 'Operations Research', 'Supply Chain Management', 
+    'Quality Control', 'Lean Manufacturing', 'Data Analysis', 'Six Sigma', 
+    'Systems Engineering', 'Facility Layout', 'Project Management', 'Logistics', 
+    'Ergonomics', 'Inventory Control'
+  ]
 };
 
 function MultiSelect({ label, options, value, onChange, placeholder, disabled = false }) {
@@ -57,6 +109,7 @@ export default function StudentProfile() {
   const formRef = useRef(null);
   const [domains, setDomains] = useState([]);
   const [skills, setSkills] = useState([]);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     setDomains(user?.profile?.domains || []);
@@ -69,6 +122,30 @@ export default function StudentProfile() {
     setDomains(selectedDomains);
     const selectedDomainSkills = new Set(selectedDomains.flatMap((domain) => ENGINEERING_DOMAINS[domain] || []));
     setSkills((currentSkills) => currentSkills.filter((skill) => selectedDomainSkills.has(skill)));
+  };
+  
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    setUploadingAvatar(true);
+    const uploadToast = toast.loading('Uploading profile photo...');
+    try {
+      const { data } = await api.post('/auth/me/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      updateUser(data.user);
+      toast.success('Profile photo updated successfully!', { id: uploadToast });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to upload profile photo', { id: uploadToast });
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
 
   const handleUpdateProfile = async (event) => {
@@ -171,13 +248,24 @@ export default function StudentProfile() {
         </div>
         <section className="surface rounded-lg p-6">
           <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-            <div className="rounded-lg bg-white p-5 text-center ring-1 ring-slate-200">
-              <div className="mx-auto grid h-28 w-28 place-items-center rounded-lg bg-nova-peach text-nova-coral">
-                <UserRound size={48} />
+            <div className="rounded-lg bg-white p-5 text-center ring-1 ring-slate-200 flex flex-col items-center">
+              <div className="relative group">
+                <div className="mx-auto h-28 w-28 overflow-hidden rounded-lg bg-nova-peach text-nova-coral flex items-center justify-center ring-4 ring-nova-peach/30">
+                  {user?.avatar_url ? (
+                    <img src={user.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <UserRound size={48} />
+                  )}
+                </div>
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg">
+                    <Loader2 className="animate-spin text-white" size={24} />
+                  </div>
+                )}
               </div>
-              <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-bold ring-1 ring-slate-200">
-                <Upload size={16} />Profile Photo
-                <input type="file" className="hidden" />
+              <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-bold ring-1 ring-slate-200 hover:bg-slate-50 transition active:scale-95">
+                <Camera size={16} />Change Photo
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
               </label>
             </div>
             <form ref={formRef} className="grid gap-4 md:grid-cols-2" onSubmit={handleUpdateProfile}>

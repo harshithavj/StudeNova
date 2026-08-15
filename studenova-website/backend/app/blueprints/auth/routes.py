@@ -314,6 +314,10 @@ def update_profile():
         user.phone_number = payload["phone_number"] or None
     if "address" in payload:
         user.address = payload["address"] or None
+    if "website" in payload:
+        user.website = payload["website"] or None
+    if "linkedin_url" in payload:
+        user.linkedin_url = payload["linkedin_url"] or None
 
     if user.role == "student":
         if not user.profile:

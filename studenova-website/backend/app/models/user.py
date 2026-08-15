@@ -20,6 +20,8 @@ class User(db.Model):
     bio = db.Column(db.Text)
     phone_number = db.Column(db.String(30))
     address = db.Column(db.Text)
+    website = db.Column(db.Text)
+    linkedin_url = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     last_login_at = db.Column(db.DateTime, nullable=True)
 

@@ -21,6 +21,8 @@ create table if not exists users (
   company varchar(180),
   avatar_url text,
   bio text,
+  website text,
+  linkedin_url text,
   created_at timestamptz not null default now(),
   last_login_at timestamptz
 );
