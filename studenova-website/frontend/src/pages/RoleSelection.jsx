@@ -37,7 +37,7 @@ export default function RoleSelection() {
       <BackButton />
       <div className="mt-8 max-w-3xl">
         <p className="text-sm font-bold uppercase tracking-wider text-nova-coral">Choose your onboarding path</p>
-        <h1 className="mt-2 text-4xl font-black">Join STUDENOVA as the role that fits your work.</h1>
+        <h1 className="mt-2 text-4xl font-black">Join STUDENOVA as the role that fits <span className="whitespace-nowrap">your work.</span></h1>
         <p className="mt-3 text-nova-muted">Each workspace gets a focused dashboard, permissions, and API access for its use case.</p>
       </div>
       <div className="mt-8 grid gap-5 lg:grid-cols-3">
