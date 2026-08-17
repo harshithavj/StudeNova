@@ -51,16 +51,17 @@
             Full name
             <input id="nameInput" type="text" autocomplete="name" placeholder="Admin name" />
           </label>
-          <label>
-            Admin email
+          <label id="emailField">
+            <span id="emailLabelText">Admin email</span>
             <input id="emailInput" type="email" autocomplete="email" required placeholder="admin@example.com" />
           </label>
-          <label>
-            Password
+          <label id="passwordField">
+            <span id="passwordLabelText">Password</span>
             <input id="passwordInput" type="password" autocomplete="current-password" required placeholder="Password" />
           </label>
+          <button id="forgotPasswordLink" class="link-button forgot-link" type="button">Forgot password?</button>
           <label id="confirmPasswordField" class="hidden">
-            Confirm password
+            <span id="confirmPasswordLabelText">Confirm password</span>
             <input id="confirmPasswordInput" type="password" autocomplete="new-password"
               placeholder="Confirm password" />
           </label>

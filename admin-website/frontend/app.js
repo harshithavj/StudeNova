@@ -10,7 +10,13 @@ const loginMessage = document.querySelector('#loginMessage');
 const formTitle = document.querySelector('#formTitle');
 const formSubtitle = document.querySelector('#formSubtitle');
 const nameField = document.querySelector('#nameField');
+const emailField = document.querySelector('#emailField');
+const emailLabelText = document.querySelector('#emailLabelText');
+const passwordField = document.querySelector('#passwordField');
+const passwordLabelText = document.querySelector('#passwordLabelText');
+const forgotPasswordLink = document.querySelector('#forgotPasswordLink');
 const confirmPasswordField = document.querySelector('#confirmPasswordField');
+const confirmPasswordLabelText = document.querySelector('#confirmPasswordLabelText');
 const otpField = document.querySelector('#otpField');
 const otpButton = document.querySelector('#otpButton');
 const toggleModeButton = document.querySelector('#toggleModeButton');
@@ -176,20 +182,95 @@ function setAuthMode(mode) {
   otpSent = false;
   loginForm.reset();
   setMessage('');
-  const isSignup = mode === 'signup';
 
-  formTitle.textContent = isSignup ? 'Admin Signup' : 'Welcome Back, Admin';
-  formSubtitle.textContent = isSignup
-    ? 'Verify your email with OTP before creating an admin account.'
-    : 'Secure access to the STUDENOVA administration portal.';
-  nameField.classList.toggle('hidden', !isSignup);
-  confirmPasswordField.classList.toggle('hidden', !isSignup);
-  otpField.classList.toggle('hidden', !isSignup);
-  otpButton.classList.toggle('hidden', !isSignup);
-  updateOtpButtonLabel();
-  loginButton.textContent = isSignup ? 'Create Admin Account' : 'Login to Admin Dashboard';
-  toggleModeButton.textContent = isSignup ? 'Already have an admin account? Login' : 'Create admin account';
-  document.querySelector('#passwordInput').autocomplete = isSignup ? 'new-password' : 'current-password';
+  const emailInput = document.querySelector('#emailInput');
+  const passwordInput = document.querySelector('#passwordInput');
+  const confirmPasswordInput = document.querySelector('#confirmPasswordInput');
+  const otpInput = document.querySelector('#otpInput');
+
+  passwordInput.required = (mode === 'login' || mode === 'signup' || mode === 'forgot_reset');
+  confirmPasswordInput.required = (mode === 'signup' || mode === 'forgot_reset');
+  otpInput.required = (mode === 'signup' || mode === 'forgot_reset');
+
+  if (mode === 'login') {
+    formTitle.textContent = 'Welcome Back, Admin';
+    formSubtitle.textContent = 'Secure access to the STUDENOVA administration portal.';
+    emailLabelText.textContent = 'Admin email';
+    emailInput.placeholder = 'admin@example.com';
+    passwordLabelText.textContent = 'Password';
+    passwordInput.placeholder = 'Password';
+
+    nameField.classList.add('hidden');
+    emailField.classList.remove('hidden');
+    passwordField.classList.remove('hidden');
+    forgotPasswordLink.classList.remove('hidden');
+    confirmPasswordField.classList.add('hidden');
+    otpField.classList.add('hidden');
+    otpButton.classList.add('hidden');
+
+    loginButton.textContent = 'Login to Admin Dashboard';
+    toggleModeButton.textContent = 'Create admin account';
+    passwordInput.autocomplete = 'current-password';
+  } else if (mode === 'signup') {
+    formTitle.textContent = 'Admin Signup';
+    formSubtitle.textContent = 'Verify your email with OTP before creating an admin account.';
+    emailLabelText.textContent = 'Admin email';
+    emailInput.placeholder = 'admin@example.com';
+    passwordLabelText.textContent = 'Password';
+    passwordInput.placeholder = 'Password';
+    confirmPasswordLabelText.textContent = 'Confirm password';
+    confirmPasswordInput.placeholder = 'Confirm password';
+
+    nameField.classList.remove('hidden');
+    emailField.classList.remove('hidden');
+    passwordField.classList.remove('hidden');
+    forgotPasswordLink.classList.add('hidden');
+    confirmPasswordField.classList.remove('hidden');
+    otpField.classList.remove('hidden');
+    otpButton.classList.remove('hidden');
+    updateOtpButtonLabel();
+
+    loginButton.textContent = 'Create Admin Account';
+    toggleModeButton.textContent = 'Already have an admin account? Login';
+    passwordInput.autocomplete = 'new-password';
+  } else if (mode === 'forgot_email') {
+    formTitle.textContent = 'Reset Password';
+    formSubtitle.textContent = 'Enter your registered email address to receive a password reset OTP.';
+    emailLabelText.textContent = 'Registered email address';
+    emailInput.placeholder = 'admin@example.com';
+
+    nameField.classList.add('hidden');
+    emailField.classList.remove('hidden');
+    passwordField.classList.add('hidden');
+    forgotPasswordLink.classList.add('hidden');
+    confirmPasswordField.classList.add('hidden');
+    otpField.classList.add('hidden');
+    otpButton.classList.add('hidden');
+
+    loginButton.textContent = 'Send Reset OTP';
+    toggleModeButton.textContent = 'Back to login';
+  } else if (mode === 'forgot_reset') {
+    formTitle.textContent = 'Set New Password';
+    formSubtitle.textContent = 'Enter the OTP sent to your email and choose a new password.';
+    emailLabelText.textContent = 'Registered email address';
+    emailInput.placeholder = 'admin@example.com';
+    passwordLabelText.textContent = 'New password';
+    passwordInput.placeholder = 'New password';
+    confirmPasswordLabelText.textContent = 'Confirm new password';
+    confirmPasswordInput.placeholder = 'Confirm new password';
+
+    nameField.classList.add('hidden');
+    emailField.classList.remove('hidden');
+    passwordField.classList.remove('hidden');
+    forgotPasswordLink.classList.add('hidden');
+    confirmPasswordField.classList.remove('hidden');
+    otpField.classList.remove('hidden');
+    otpButton.classList.add('hidden');
+
+    loginButton.textContent = 'Set New Password';
+    toggleModeButton.textContent = 'Use a different email';
+    passwordInput.autocomplete = 'new-password';
+  }
 }
 
 function getCurrentPage() {
@@ -827,7 +908,13 @@ loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   setMessage('');
   loginButton.disabled = true;
-  loginButton.textContent = authMode === 'signup' ? 'Creating account...' : 'Checking access...';
+
+  let loadingText = 'Checking access...';
+  if (authMode === 'signup') loadingText = 'Creating account...';
+  else if (authMode === 'forgot_email') loadingText = 'Sending OTP...';
+  else if (authMode === 'forgot_reset') loadingText = 'Updating password...';
+  loginButton.textContent = loadingText;
+
   try {
     if (authMode === 'signup') {
       const password = document.querySelector('#passwordInput').value;
@@ -852,6 +939,36 @@ loginForm.addEventListener('submit', async (event) => {
       return;
     }
 
+    if (authMode === 'forgot_email') {
+      const email = document.querySelector('#emailInput').value;
+      await request('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email })
+      });
+      setAuthMode('forgot_reset');
+      document.querySelector('#emailInput').value = email;
+      setMessage('Password reset OTP sent to your email.', false);
+      return;
+    }
+
+    if (authMode === 'forgot_reset') {
+      const email = document.querySelector('#emailInput').value;
+      const otp = document.querySelector('#otpInput').value;
+      const password = document.querySelector('#passwordInput').value;
+      const confirmPassword = document.querySelector('#confirmPasswordInput').value;
+      if (password !== confirmPassword) {
+        throw new Error('Passwords do not match.');
+      }
+      await request('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp, password })
+      });
+      setAuthMode('login');
+      document.querySelector('#emailInput').value = email;
+      setMessage('Password updated. Please login with your new password.', false);
+      return;
+    }
+
     const data = await request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({
@@ -873,12 +990,22 @@ loginForm.addEventListener('submit', async (event) => {
       liveActivityTimer = setInterval(loadDashboard, 10000);
     }
   } catch (error) {
-    localStorage.removeItem(tokenKey);
-    localStorage.removeItem(userKey);
+    if (authMode === 'login') {
+      localStorage.removeItem(tokenKey);
+      localStorage.removeItem(userKey);
+    }
     setMessage(error.message);
   } finally {
     loginButton.disabled = false;
-    loginButton.textContent = authMode === 'signup' ? 'Create Admin Account' : 'Login to Admin Dashboard';
+    if (authMode === 'signup') {
+      loginButton.textContent = 'Create Admin Account';
+    } else if (authMode === 'forgot_email') {
+      loginButton.textContent = 'Send Reset OTP';
+    } else if (authMode === 'forgot_reset') {
+      loginButton.textContent = 'Set New Password';
+    } else {
+      loginButton.textContent = 'Login to Admin Dashboard';
+    }
   }
 });
 
@@ -909,7 +1036,19 @@ otpButton.addEventListener('click', async () => {
 });
 
 toggleModeButton.addEventListener('click', () => {
-  setAuthMode(authMode === 'signup' ? 'login' : 'signup');
+  if (authMode === 'signup') {
+    setAuthMode('login');
+  } else if (authMode === 'login') {
+    setAuthMode('signup');
+  } else if (authMode === 'forgot_email') {
+    setAuthMode('login');
+  } else if (authMode === 'forgot_reset') {
+    setAuthMode('forgot_email');
+  }
+});
+
+forgotPasswordLink.addEventListener('click', () => {
+  setAuthMode('forgot_email');
 });
 
 refreshButton.addEventListener('click', loadDashboard);
