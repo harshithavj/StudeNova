@@ -737,43 +737,96 @@ function renderAdminProfile(user) {
   if (!user) return;
   const profileHtml = `
     <article class="settings-card admin-profile">
-      <h3>Profile Settings</h3>
-      <form id="adminProfileForm" class="profile-form">
-        <div class="profile-photo-field">
-          <div class="profile-avatar" id="profileAvatarPreview" aria-label="Profile photo preview">
-            ${user.avatar_url ? `<img src="${user.avatar_url}" alt="Current profile photo" />` : `<span>${(user.name || 'A').trim().charAt(0).toUpperCase()}</span>`}
+      <div class="admin-profile-container">
+        <!-- left/top: photo upload & stats/meta & actions -->
+        <div class="admin-profile-sidebar">
+          <div class="profile-photo-section">
+            <label class="photo-upload-label" for="profilePhoto">
+              <div class="profile-avatar" id="profileAvatarPreview" aria-label="Profile photo preview">
+                ${user.avatar_url ? `<img src="${user.avatar_url}" alt="Current profile photo" />` : `<span>${(user.name || 'A').trim().charAt(0).toUpperCase()}</span>`}
+                <div class="avatar-hover-overlay">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                </div>
+              </div>
+              <div class="photo-upload-info">
+                <span class="upload-title">Profile Photo</span>
+                <span class="upload-action-btn">Choose Image</span>
+                <small class="upload-specs">JPG, PNG, or WebP · Up to 3 MB</small>
+              </div>
+              <input id="profilePhoto" type="file" accept="image/png,image/jpeg,image/webp" class="hidden-file-input" />
+            </label>
           </div>
-          <label class="photo-upload-label" for="profilePhoto">
-            <span>Profile Photo</span>
-            <input id="profilePhoto" type="file" accept="image/png,image/jpeg,image/webp" />
-            <small>Optional · JPG, PNG, or WebP · up to 3 MB</small>
-          </label>
+          
+          <div class="profile-meta-card">
+            <div class="meta-item">
+              <span class="meta-label">Role</span>
+              <span class="meta-value role-badge">${user.role || 'admin'}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Last Login</span>
+              <span class="meta-value">${formatDate(user.last_login_at)}</span>
+            </div>
+          </div>
+          
+          <div class="sidebar-actions">
+            <button class="profile-sidebar-btn change-pw-btn" type="button" id="changePasswordBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              Change Password
+            </button>
+            <button class="profile-sidebar-btn logout-btn" type="button" id="profileLogoutBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              Sign Out
+            </button>
+          </div>
         </div>
-        <label>
-          Name
-          <input id="profileName" type="text" value="${user.name || ''}" required />
-        </label>
-        <label>
-          Email
-          <input id="profileEmail" type="email" value="${user.email || ''}" required />
-        </label>
-        <label>
-          Phone Number
-          <input id="profilePhone" type="tel" value="${user.phone_number || ''}" placeholder="Phone number" />
-        </label>
-        <label>
-          Address
-          <textarea id="profileAddress" placeholder="Address">${user.address || ''}</textarea>
-        </label>
-        <p class="muted">Role: ${user.role || 'admin'}</p>
-        <p class="muted">Last login: ${formatDate(user.last_login_at)}</p>
-        <div class="row-actions">
-          <button class="dark-button" type="submit" id="saveProfileBtn">Update Profile</button>
-          <button class="small-button" type="button" id="changePasswordBtn">Change Password</button>
-          <button class="small-button reject-button" type="button" id="profileLogoutBtn">Sign Out</button>
-        </div>
-        <p id="profileMessage" class="form-message"></p>
-      </form>
+        
+        <!-- right/bottom: main form fields & update button -->
+        <form id="adminProfileForm" class="profile-details-form">
+          <h3 class="form-section-title">Personal Details</h3>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="profileName">Full Name</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <input id="profileName" type="text" value="${user.name || ''}" required placeholder="Your name" />
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="profileEmail">Email Address</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                <input id="profileEmail" type="email" value="${user.email || ''}" required placeholder="Your email address" />
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="profilePhone">Phone Number</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <input id="profilePhone" type="tel" value="${user.phone_number || ''}" placeholder="Enter phone number" />
+              </div>
+            </div>
+            
+            <div class="form-group full-width">
+              <label for="profileAddress">Residential Address</label>
+              <div class="input-wrapper textarea-wrapper">
+                <svg class="input-icon textarea-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <textarea id="profileAddress" placeholder="Enter address">${user.address || ''}</textarea>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-footer">
+            <p id="profileMessage" class="form-message" role="status"></p>
+            <button class="save-profile-btn" type="submit" id="saveProfileBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              Update Profile
+            </button>
+          </div>
+        </form>
+      </div>
     </article>
   `;
 
