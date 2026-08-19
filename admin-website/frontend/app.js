@@ -357,7 +357,7 @@ function renderVerificationList(containerId, badgeId, requests = [], allowSuspen
         <h3>${item.organizer_name}</h3>
         <p>${item.organization_name} - ${item.official_email}</p>
       </div>
-      <span class="status-pill">${statusLabel(item.status)}</span>
+      <span class="status-pill ${item.status.toLowerCase().replaceAll('_', '-')}">${statusLabel(item.status)}</span>
       <div class="verification-actions">
         ${renderVerificationReviewButtons(item.user_id, item.status, { allowSuspend })}
       </div>
@@ -394,7 +394,7 @@ function renderVerificationDetails(userId) {
   
   const statusPill = document.querySelector('#verificationStatusPill');
   statusPill.textContent = statusLabel(requestItem.status);
-  statusPill.className = `status-pill ${requestItem.status}`;
+  statusPill.className = `status-pill ${requestItem.status.toLowerCase().replaceAll('_', '-')}`;
 
   document.querySelector('#verificationDetailsBody').innerHTML = `
     <div class="details-grid">
@@ -558,7 +558,7 @@ function renderTopEvents(items = []) {
     <tr>
       <td>${event.title}</td>
       <td>${event.category || 'Uncategorized'}</td>
-      <td><span class="status-pill">${event.status}</span></td>
+      <td><span class="status-pill ${event.status.toLowerCase().replaceAll('_', '-')}">${event.status}</span></td>
       <td>${formatNumber(event.registrations_count)}</td>
       <td>${event.popularity_score || 0}</td>
     </tr>
