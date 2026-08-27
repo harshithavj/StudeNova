@@ -21,5 +21,5 @@ app = create_app()
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("ADMIN_API_PORT", "5100"))
+    port = int(os.getenv("ADMIN_API_PORT", "5101"))
     app.run(host="0.0.0.0", port=port, debug=True)

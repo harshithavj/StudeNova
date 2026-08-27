@@ -1,4 +1,4 @@
-const API_BASE_URL = window.STUDENOVA_ADMIN_API_URL || 'http://localhost:5100/api';
+const API_BASE_URL = window.STUDENOVA_ADMIN_API_URL || 'http://localhost:5101/api';
 const tokenKey = 'studenova_admin_token';
 const userKey = 'studenova_admin_user';
 
@@ -391,7 +391,7 @@ function renderVerificationDetails(userId) {
   document.querySelector('#verificationDetails').classList.remove('hidden');
   document.querySelector('#verificationDetails').classList.remove('admin-page-hidden');
   document.querySelector('#verificationDetailsSubtitle').textContent = `${requestItem.organizer_name} - ${requestItem.organization_name}`;
-  
+
   const statusPill = document.querySelector('#verificationStatusPill');
   statusPill.textContent = statusLabel(requestItem.status);
   statusPill.className = `status-pill ${requestItem.status.toLowerCase().replaceAll('_', '-')}`;
@@ -420,9 +420,9 @@ function renderVerificationDetails(userId) {
     </div>
     <div class="verification-details-actions">
       ${renderVerificationReviewButtons(requestItem.user_id, requestItem.status, {
-        includeReviewButton: isApprovedVerification(requestItem.status),
-        allowSuspend: isApprovedVerification(requestItem.status)
-      })}
+    includeReviewButton: isApprovedVerification(requestItem.status),
+    allowSuspend: isApprovedVerification(requestItem.status)
+  })}
     </div>
   `;
   document.querySelector('#verificationDetails').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -478,6 +478,7 @@ function renderRoles(items = []) {
 
 function renderActivity(items = []) {
   const activityList = document.querySelector('#activityList');
+  if (!activityList) return;
   if (!items.length) {
     activityList.innerHTML = '<p class="empty-state">No activity recorded yet.</p>';
     return;
@@ -513,7 +514,7 @@ function renderActivity(items = []) {
   activityList.innerHTML = sortedGroups.map((group) => {
     const initial = group.name.trim().charAt(0) || '?';
     const roleBadge = group.role ? `<span class="user-role">${group.role.replaceAll('_', ' ')}</span>` : '';
-    
+
     // Generate individual activity rows
     const rowsHtml = group.activities.map((item) => `
       <div class="activity-row">
@@ -616,21 +617,21 @@ function renderManagementList(selector, items = [], type = 'student') {
       <p>${user.email}</p>
       <p>Status: ${statusLabel(user.account_status || 'active')}</p>
       <p>${type === 'student' ? `${user.participation_count} participations - ${user.achievements_count} achievements - ${user.reports_against_user} reports`
-        : `${statusLabel(user.verification_status)} - ${user.events_created} events - ${user.college || user.company || 'Organization not provided'}`}</p>
+      : `${statusLabel(user.verification_status)} - ${user.events_created} events - ${user.college || user.company || 'Organization not provided'}`}</p>
       <div class="row-actions">
         ${type !== 'student' ? (isApprovedVerification(user.verification_status)
-          ? `<button class="small-button approve-button" type="button" disabled>Approved</button>
+      ? `<button class="small-button approve-button" type="button" disabled>Approved</button>
             <button class="small-button" type="button" data-view-verification="${user.id}">Review Again</button>`
-          : `<button class="small-button approve-button" type="button" data-view-verification="${user.id}">Review Verification</button>`) : ''}
+      : `<button class="small-button approve-button" type="button" data-view-verification="${user.id}">Review Verification</button>`) : ''}
         ${(user.account_status || 'active') === 'active'
-          ? `<button class="small-button approve-button" type="button" disabled>Activated</button>`
-          : `<button class="small-button" type="button" data-user-action="activate" data-user-id="${user.id}">Activate</button>`}
+      ? `<button class="small-button approve-button" type="button" disabled>Activated</button>`
+      : `<button class="small-button" type="button" data-user-action="activate" data-user-id="${user.id}">Activate</button>`}
         ${user.account_status === 'suspended'
-          ? `<button class="small-button reject-button" type="button" disabled>Suspended</button>`
-          : `<button class="small-button" type="button" data-user-action="suspend" data-user-id="${user.id}">Suspend</button>`}
+      ? `<button class="small-button reject-button" type="button" disabled>Suspended</button>`
+      : `<button class="small-button" type="button" data-user-action="suspend" data-user-id="${user.id}">Suspend</button>`}
         ${user.account_status === 'banned'
-          ? `<button class="small-button reject-button" type="button" disabled>Banned</button>`
-          : `<button class="small-button reject-button" type="button" data-user-action="ban" data-user-id="${user.id}">Ban</button>`}
+      ? `<button class="small-button reject-button" type="button" disabled>Banned</button>`
+      : `<button class="small-button reject-button" type="button" data-user-action="ban" data-user-id="${user.id}">Ban</button>`}
       </div>
     </article>
   `).join('') : '<p class="empty-state">No users found.</p>';

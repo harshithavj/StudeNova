@@ -38,13 +38,16 @@
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 99px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
@@ -1637,7 +1640,7 @@ td:first-child {
   .form-grid {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .full-width {
     grid-column: span 2;
   }
@@ -1756,4 +1759,3 @@ td:first-child {
 .form-message:empty {
   opacity: 0;
 }
-
